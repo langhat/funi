@@ -9,6 +9,8 @@
 
 #define shiftState \
 if(is_useless(code[i])){\
+}else if(is_enter(code[i])){\
+	st.push(ENTER);\
 }else if(code[i]=='/'&&i+1<code.size()&&code[i+1]=='/'){\
 	st.push(COMMENT);\
 }else if(is_operator(code[i])){\
@@ -59,6 +61,7 @@ enum state{
 	FLOP,//{}
 	ID,//for example `abc_123`
 	WAIT,
+	ENTER,
 	COMMENT,// '//...'
 };
 
@@ -68,7 +71,11 @@ bool is_operator(char ch){
 }
 
 bool is_useless(char ch){
-	return ch==' '||ch=='\t'||ch=='\n';
+	return ch==' '||ch=='\t';
+}
+
+bool is_enter(char ch){
+	return ch=='\n';
 }
 
 bool is_num(char ch){
@@ -119,6 +126,15 @@ void split(std::string code,std::vector<std::string> &object){
 				token+=string(1,code[i]);
 			}else{
 				st.pop();//quit operator mode
+				goto home;
+			}
+			break;
+		case ENTER:
+			if(is_enter(code[i])){
+				if(token.size()>=1&&token[token.size()-1]=='\n'){}
+				else token+="\n";
+			}else{
+				st.pop();//quit enter mode
 				goto home;
 			}
 			break;

@@ -1,5 +1,5 @@
-#ifndef LWRUNNER_CPP
-#define LWRUNNER_CPP
+#ifndef fiRunner_CPP
+#define fiRunner_CPP
 
 #include<iostream>
 #include<string>
@@ -101,8 +101,8 @@ std::vector<T> back_vec(const std::vector<T> &vec){
 	return ret;
 }
 
-class lwRunner{
-	std::vector<value> valtb;
+class fiRunner{
+	std::map<std::string, value> valtb;
 	std::string vtoa(const std::vector<std::string> &vec){
 		std::string ret;
 		for(auto &ec: vec){
@@ -111,7 +111,7 @@ class lwRunner{
 		return ret;
 	}
 public:
-	lwRunner(){
+	fiRunner(){
 	}
 	void run(const std::string &code){
 		using namespace std;
@@ -124,7 +124,7 @@ public:
 		
 		for(auto &ec:object){
 			//cout<<ec<<" | ";
-			if(ec!=";"){
+			if(ec!="\n"){
 				expr.push_back(ec);
 			}else{
 				auto result=this->expr(expr);
@@ -133,7 +133,9 @@ public:
 		}
 		
 		if(!expr.empty()){
-			throw LessSemicolon{};
+			auto result=this->expr(expr);
+			expr.clear();
+			//throw LessSemicolon{};
 		}
 	}
 	value expr(const std::vector<std::string> &code){
@@ -284,8 +286,10 @@ public:
 				if(part[1].empty()){}
 				else if(part[1].size()==1){
 					//special
-					if(0){
-
+					if(part[1][0]=="__out"){
+						GetArgs
+						auto arg=expr(args[0]);
+						visit(printVisitor{},arg);
 					}
 					else{
 						//a lambda or a func
@@ -297,7 +301,7 @@ public:
 				}
 				goto specialCallEnd;
 				LambdaCall:{
-					auto func=get<Lambda>(expr(part[1]));
+					auto func=get<Func>(expr(part[1]));
 					
 					//prepare for args
 					GetArgs
@@ -306,7 +310,9 @@ public:
 					// }
 					auto arg=visit(loadVisitor{},expr(args[0]));
 
-					return expr(match(func.body, func.arg, arg));
+					vector<string> object;
+					split(match(func.body, func.arg, arg),object);
+					return expr(object);
 
 				}specialCallEnd:;
 			}

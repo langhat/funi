@@ -172,80 +172,10 @@ public:
 		std::cout<< val;
 	}
 	
-	// ========== 容器/自定义类型处理（递归打印） ==========
-	// 5. valueVec（vector<value> 包装类）
-	void operator()(const valueVec& vec) const {
-		const auto& raw_vec = (const std::vector<value>&)vec;
-		std::cout << "[\n"; // 数组开头
-		const auto child_visitor = get_child_visitor();
-		
-		// 遍历数组元素
-		for (size_t i = 0; i < raw_vec.size(); ++i) {
-			std::cout << child_visitor.get_indent(); // 子元素缩进
-			std::visit(child_visitor, raw_vec[i]);   // 递归打印元素
-			if (i != raw_vec.size() - 1) {
-				std::cout << ","; // 非最后一个元素加逗号
-			}
-			std::cout << "\n";
-		}
-		
-		std::cout << get_indent() << "]"; // 数组结尾（回退缩进）
+	void operator()(const Func&) const {
+		std::cout << "func";
 	}
-	
-	// 6. valueMap（map<value, value> 包装类）
-	void operator()(const valueMap& map) const {
-		const auto& raw_map = (const std::map<value, value>&)(map);
-		std::cout << "{\n"; // Map 开头
-		const auto child_visitor = get_child_visitor();
-		size_t count = 0;
-		
-		// 遍历键值对
-		for (const auto& [key, val] : raw_map) {
-			std::cout << child_visitor.get_indent();
-			std::visit(child_visitor, key);   // 递归打印键
-			std::cout << ": ";
-			std::visit(child_visitor, val);   // 递归打印值
-			if (++count != raw_map.size()) {
-				std::cout << ",";
-			}
-			std::cout << "\n";
-		}
-		
-		std::cout << get_indent() << "}"; // Map 结尾
-	}
-	
-	// 7. valueObject（map<string, value> 包装类）
-	void operator()(const valueObject& obj) const {
-		const auto& raw_obj = (const std::map<std::string, value>&)(obj);
-		std::cout << "{\n"; // 对象开头
-		const auto child_visitor = get_child_visitor();
-		size_t count = 0;
-		
-		// 遍历字符串键值对
-		for (const auto& [key, val] : raw_obj) {
-			std::cout << child_visitor.get_indent() << "\"" << key << "\": ";
-			std::visit(child_visitor, val); // 递归打印值
-			if (++count != raw_obj.size()) {
-				std::cout << ",";
-			}
-			std::cout << "\n";
-		}
-		
-		std::cout << get_indent() << "}"; // 对象结尾
-	}
-	
-	// 8. Lambda（代码块）
-	void operator()(const Lambda& lambda) const {
-		const auto& code = (const std::string&)(lambda);
-		std::cout << "Lambda: \"" << code << "\"";
-	}
-	
-	// 9. Address（地址字符串）
-	void operator()(const Address& addr) const {
-		const auto& address = (const std::string&)(addr);
-		std::cout << "Address: \"" << address << "\"";
-	}
-	
+
 	// 10. Unit（空类型）
 	void operator()(const Unit&) const {
 		std::cout << "unit";
@@ -282,76 +212,10 @@ public:
 		return "\"" + val + "\"";
 	}
 	
-	// ========== 容器/自定义类型处理（返回格式化字符串） ==========
-	// 5. valueVec：格式 vector(val1,val2,...)
-	std::string operator()(const valueVec& vec) const {
-		const auto& raw_vec = (const std::vector<value>&)vec;
-		std::string result = "vector(";
-		
-		// 遍历数组元素，拼接逗号分隔的字符串
-		for (size_t i = 0; i < raw_vec.size(); ++i) {
-			result += std::visit(loadVisitor{}, raw_vec[i]);
-			if (i != raw_vec.size() - 1) {
-				result += ",";
-			}
-		}
-		
-		result += ")";
-		return result;
+	std::string operator()(const Func& val) const {
+		return "func";
 	}
-	
-	// 6. valueMap：格式 map(key1,val1,key2,val2,...)
-	std::string operator()(const valueMap& map) const {
-		const auto& raw_map = (const std::map<value, value>&)(map);
-		std::string result = "map(";
-		size_t count = 0;
-		
-		// 遍历键值对，依次拼接 key,val
-		for (const auto& [key, val] : raw_map) {
-			result += std::visit(loadVisitor{}, key);   // 拼接键的字符串
-			result += ",";
-			result += std::visit(loadVisitor{}, val);   // 拼接值的字符串
-			if (++count != raw_map.size()) {
-				result += ",";
-			}
-		}
-		
-		result += ")";
-		return result;
-	}
-	
-	// 7. valueObject：格式 object(key1,val1,key2,val2,...)
-	std::string operator()(const valueObject& obj) const {
-		const auto& raw_obj = (const std::map<std::string, value>&)(obj);
-		std::string result = "object(";
-		size_t count = 0;
-		
-		// 遍历字符串键值对，key 不带引号
-		for (const auto& [key, val] : raw_obj) {
-			result += key; // key 直接拼接（无引号）
-			result += ",";
-			result += std::visit(loadVisitor{}, val);   // 拼接值的字符串
-			if (++count != raw_obj.size()) {
-				result += ",";
-			}
-		}
-		
-		result += ")";
-		return result;
-	}
-	
-	// 8. Lambda：格式 {Lambda值}
-	std::string operator()(const Lambda& lambda) const {
-		const auto& code = (const std::string&)(lambda);
-		return "{" + code + "}";
-	}
-	
-	// 9. Address：保持原有格式字符串
-	std::string operator()(const Address& addr) const {
-		const auto& address = (const std::string&)(addr);
-		return "Address: \"" + address + "\"";
-	}
-	
+
 	// 10. Unit（空类型）
 	std::string operator()(const Unit&) const {
 		return "unit";
@@ -386,11 +250,7 @@ struct toi_visitor {
 	}
 	
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
-	long long operator()(const valueVec&) const { throw TypeError(); }
-	long long operator()(const valueMap&) const { throw TypeError(); }
-	long long operator()(const valueObject&) const { throw TypeError(); }
-	long long operator()(const Lambda&) const { throw TypeError(); }
-	long long operator()(const Address&) const { throw TypeError(); }
+	long long operator()(const Func&) const { throw TypeError(); }
 	long long operator()(const Unit&) const { throw TypeError(); }
 };
 
@@ -421,11 +281,7 @@ struct tob_visitor {
 	}
 	
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
-	bool operator()(const valueVec&) const { throw TypeError(); }
-	bool operator()(const valueMap&) const { throw TypeError(); }
-	bool operator()(const valueObject&) const { throw TypeError(); }
-	bool operator()(const Lambda&) const { throw TypeError(); }
-	bool operator()(const Address&) const { throw TypeError(); }
+	bool operator()(const Func&) const { throw TypeError(); }
 	bool operator()(const Unit&) const { throw TypeError(); }
 };
 
@@ -458,11 +314,7 @@ struct tod_visitor {
 	}
 	
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
-	long double operator()(const valueVec&) const { throw TypeError(); }
-	long double operator()(const valueMap&) const { throw TypeError(); }
-	long double operator()(const valueObject&) const { throw TypeError(); }
-	long double operator()(const Lambda&) const { throw TypeError(); }
-	long double operator()(const Address&) const { throw TypeError(); }
+	long double operator()(const Func&) const { throw TypeError(); }
 	long double operator()(const Unit&) const { throw TypeError(); }
 };
 
@@ -492,11 +344,7 @@ struct tos_visitor {
 	}
 	
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
-	std::string operator()(const valueVec&) const { throw TypeError(); }
-	std::string operator()(const valueMap&) const { throw TypeError(); }
-	std::string operator()(const valueObject&) const { throw TypeError(); }
-	std::string operator()(const Lambda&) const { throw TypeError(); }
-	std::string operator()(const Address&) const { throw TypeError(); }
+	std::string operator()(const Func&) const { throw TypeError(); }
 	std::string operator()(const Unit&) const { throw TypeError(); }
 };
 

@@ -20,7 +20,7 @@ int main(int ac,char **av){
     for(int i=1;i<ac;i++){
         args.emplace_back(av[i]);
     }
-    lwPath=path_fetch(av[0]);
-    lwMain lw(args);
-    return lw.run();
+    fiPath=path_fetch(av[0]);
+    fiMain fi(args);
+    return fi.run();
 }
