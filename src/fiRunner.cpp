@@ -364,6 +364,8 @@ public:
 				return stoll(code[0]);
 			}else if(onlypoint){
 				return stold(code[0]);
+			}else if(valtb.find(code[0])!=valtb.end()){
+				return valtb[code[0]];
 			}
 		}
 		post=0;

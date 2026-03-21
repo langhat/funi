@@ -48,6 +48,20 @@ class fiMain{
                     fiRunner fir;
                     visit(printVisitor{}, fir.expr(object));
                     cout<<endl;
+                }else if(args[i]=="visit"){
+                    ifstream ifp(args[++i]);
+                    string temp,content;
+                    while(getline(ifp,temp)){
+                        content+=temp+"\n\n";
+                    }
+                    fiRunner fir;
+                    fir.run(content);
+
+                    vector<string> object;
+                    split(args[++i],object);
+
+                    visit(printVisitor{}, fir.expr(object));
+                    cout<<endl;
                 }
 			}
             return 0;
