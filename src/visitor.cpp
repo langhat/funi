@@ -172,8 +172,8 @@ public:
 		std::cout<< val;
 	}
 	
-	void operator()(const Func&) const {
-		std::cout << "func";
+	void operator()(const Func &val) const {
+		std::cout << val.arg << " -> " << val.body;
 	}
 
 	// 10. Unit（空类型）
@@ -213,7 +213,7 @@ public:
 	}
 	
 	std::string operator()(const Func& val) const {
-		return "func";
+		return "("+val.arg+" -> "+val.body+")";
 	}
 
 	// 10. Unit（空类型）
