@@ -32,36 +32,51 @@ class fiMain{
 			using namespace std;
 			string temp;
 			for(int i=0;i<args.size();i++){
-                if(args[i]=="run"){
+                if(args[i] == "run") {
                     ifstream ifp(args[++i]);
-                    string temp,content;
-                    while(getline(ifp,temp)){
-                        content+=temp+"\n\n";
+                    string temp, content;
+                    while(getline(ifp, temp)){
+                        content += temp + "\n\n";
                     }
                     fiRunner fir;
                     fir.run(content);
                     cout<<endl;
-                }else if(args[i]=="expr"){
+                }else if(args[i] == "expr") {
                     vector<string> object;
                     split(args[++i],object);
 
                     fiRunner fir;
                     visit(printVisitor{}, fir.expr(object));
                     cout<<endl;
-                }else if(args[i]=="visit"){
+                }else if(args[i] == "visit") {
                     ifstream ifp(args[++i]);
-                    string temp,content;
-                    while(getline(ifp,temp)){
-                        content+=temp+"\n\n";
+                    string temp, content;
+                    while(getline(ifp, temp)){
+                        content += temp + "\n\n";
                     }
                     fiRunner fir;
                     fir.run(content);
 
                     vector<string> object;
-                    split(args[++i],object);
+                    split(args[++i], object);
 
                     visit(printVisitor{}, fir.expr(object));
                     cout<<endl;
+                }else if(args[i] == "repl") {
+                    fiRunner fir;
+
+                    string temp;
+
+                    while(1){
+                        vector<string> object;
+
+                        cout<<">>> "<<flush;
+                        getline(cin,temp);
+                        split(temp, object);
+
+                        visit(printVisitor{}, fir.expr(object));
+                        cout<<endl;
+                    }
                 }
 			}
             return 0;
