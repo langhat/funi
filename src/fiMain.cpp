@@ -38,15 +38,24 @@ class fiMain{
                     while(getline(ifp, temp)){
                         content += temp + "\n\n";
                     }
+
                     fiRunner fir;
-                    fir.run(content);
+                    try {
+                        fir.run (content);
+                    } catch (const exception &e){
+                        cout << "\033[31m" << e.what() << "\033[0m";
+                    }
                     cout<<endl;
                 }else if(args[i] == "expr") {
                     vector<string> object;
                     split(args[++i],object);
 
                     fiRunner fir;
-                    visit(printVisitor{}, fir.expr(object));
+                    try {
+                        visit(printVisitor{}, fir.expr(object));
+                    } catch (const exception &e){
+                        cout << "\033[31m" << e.what() << "\033[0m";
+                    }
                     cout<<endl;
                 }else if(args[i] == "visit") {
                     ifstream ifp(args[++i]);
@@ -55,7 +64,11 @@ class fiMain{
                         content += temp + "\n\n";
                     }
                     fiRunner fir;
-                    fir.run(content);
+                    try {
+                        fir.run (content);
+                    } catch (const exception &e){
+                        cout << "\033[31m" << e.what() << "\033[0m";
+                    }
 
                     vector<string> object;
                     split(args[++i], object);
@@ -74,7 +87,12 @@ class fiMain{
                         getline(cin,temp);
                         split(temp, object);
 
-                        visit(printVisitor{}, fir.expr(object));
+                        try {
+                            auto val = fir.expr(object);
+                            if(!holds_alternative<Unit> (val)) visit(printVisitor{}, val);
+                        } catch (const exception &e){
+                            cout << "\033[31m" << e.what() << "\033[0m";
+                        }
                         cout<<endl;
                     }
                 }

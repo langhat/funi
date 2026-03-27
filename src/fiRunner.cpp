@@ -61,13 +61,6 @@ public:
 	}
 };
 
-class LessSemicolon:public SyntaxError{
-public:
-	const char *what()const noexcept{
-		return "SyntaxError : Expect a semicolon int the end of the line but not";
-	}
-};
-
 class ExpectLeft:public SyntaxError{
 	const char *what()const noexcept{
 		return "SyntaxError : Lvalue required as left operand of assignment";
@@ -86,9 +79,9 @@ class PackageNotFound:public SyntaxError{
 	}
 };
 
-class BindFailed:public SyntaxError{
+class UncalableExpr:public SyntaxError{
 	const char *what()const noexcept{
-		return "SyntaxError : `bind` failed";
+		return "SyntaxError : Find a uncalable expr";
 	}
 };
 
@@ -102,6 +95,7 @@ std::vector<T> back_vec(const std::vector<T> &vec){
 }
 
 class fiRunner{
+	static std::map<std::string, Type> types;
 	std::map<std::string, value> valtb;
 	std::string vtoa(const std::vector<std::string> &vec){
 		std::string ret;
@@ -111,7 +105,14 @@ class fiRunner{
 		return ret;
 	}
 public:
-	fiRunner(){
+	fiRunner(): types(
+		{"Int", Int},
+		{"Bool", Bool},
+		{"Real", Real},
+		{"Str", Str},
+		{"Unit", Unit_t},
+		{"Type", Type_t}
+	){
 	}
 	void run(const std::string &code){
 		using namespace std;
@@ -140,6 +141,8 @@ public:
 	}
 	value expr(const std::vector<std::string> &code){
 		using namespace std;
+
+		if(code.empty()) return Unit {};
 		
 		vector<string> part[3];
 		int post=0;
@@ -290,6 +293,8 @@ public:
 						GetArgs
 						auto arg=expr(args[0]);
 						visit(printVisitor{},arg);
+					}else if(part[1][0] == "exit"){
+						exit(0);
 					}
 					else{
 						//a lambda or a func
@@ -301,19 +306,22 @@ public:
 				}
 				goto specialCallEnd;
 				LambdaCall:{
-					auto func=get<Func>(expr(part[1]));
+					auto func=expr(part[1]);
 					
-					//prepare for args
 					GetArgs
-					// for(auto post=0;post<args.size();post++){
-					// 	expr(args[post]);
-					// }
-					auto arg=visit(loadVisitor{},expr(args[0]));
-
 					vector<string> object;
-					split(match(func.body, func.arg, arg),object);
-					return expr(object);
+					if(args.empty()) {
+						split(match(get<Func>(func).body, get<Func>(func).arg, "unit"),object);
+						return expr(object);
+					}
 
+					for(auto post=0;post<args.size();post++){
+						auto arg=visit(loadVisitor{},expr(args[post]));
+						split(match(get<Func>(func).body, get<Func>(func).arg, arg),object);
+						func = expr(object);
+					}
+
+					return func;
 				}specialCallEnd:;
 			}
 		}
@@ -321,6 +329,12 @@ public:
 		post=0;
 		
 		if(code.size()==1){
+			if(code[0] == "true") return true;
+			else if(code[0] == "false") return false;
+			else if(code[0] == "unit") return Unit{};
+
+			if(types.find(code[0]) != types.end()) return *types.find(code[0]);
+
 			bool onlynum=1,onlypoint=1,
 			pb=code[0][0]=='(',
 			fpb=code[0][0]=='{',
@@ -370,7 +384,7 @@ public:
 		}
 		post=0;
 		
-		return Unit{};
+		throw UncalableExpr{}; //return Unit{};
 	}
 };
 

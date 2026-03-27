@@ -6,25 +6,28 @@
 #include<vector>
 #include<map>
 #include<set>
+#include<memory>
 
 class Unit;
 class Func;
+class Type;
 
 typedef std::variant<
     long long,  // Int
-    bool,       // bool
+    bool,       // Bool
 	long double,// Real
     std::string,// Str
     Func,       // Func
     //Map,
     //Set,
     //List,
-	Unit        // Unit
+	Unit,       // Unit
+    Type,       // Type
 > value;
 
-class Unit{};
+class Unit {};
 
-struct Func{
+struct Func {
     std::vector<std::string> arg_type;
     std::vector<std::string> ret_type;
     bool pure;
@@ -32,13 +35,18 @@ struct Func{
         body;
 };
 
-bool operator==(const value& lhs, const value& rhs) {
-	if (lhs.index() != rhs.index()) {
-		return false;
-	}
-	return std::visit([](const auto& l_val, const auto& r_val) {
-		return l_val == r_val;
-	}, lhs, rhs);
-}
+enum BaseType{
+    Int,
+    Bool,
+    Real,
+    Str,
+    Unit_t,
+    Type_t
+};
+
+using Type = std::variant <
+    std::pair<std::unique_ptr<Type>, std::unique_ptr<Type> > ,
+    BaseType
+>;
 
 #endif
