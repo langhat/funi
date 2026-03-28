@@ -95,7 +95,6 @@ std::vector<T> back_vec(const std::vector<T> &vec){
 }
 
 class fiRunner{
-	static std::map<std::string, Type> types;
 	std::map<std::string, value> valtb;
 	std::string vtoa(const std::vector<std::string> &vec){
 		std::string ret;
@@ -105,14 +104,7 @@ class fiRunner{
 		return ret;
 	}
 public:
-	fiRunner(): types(
-		{"Int", Int},
-		{"Bool", Bool},
-		{"Real", Real},
-		{"Str", Str},
-		{"Unit", Unit_t},
-		{"Type", Type_t}
-	){
+	fiRunner() {
 	}
 	void run(const std::string &code){
 		using namespace std;
@@ -188,7 +180,7 @@ public:
 				string v1=part[0][0];
 				string v2;
 				for(auto &ec: part[1]){
-					v2+=ec;
+					v2+=ec+" ";
 				}
 				Func f;
 				f.arg=v1;
@@ -293,6 +285,7 @@ public:
 						GetArgs
 						auto arg=expr(args[0]);
 						visit(printVisitor{},arg);
+						return Unit{};
 					}else if(part[1][0] == "exit"){
 						exit(0);
 					}
@@ -311,13 +304,13 @@ public:
 					GetArgs
 					vector<string> object;
 					if(args.empty()) {
-						split(match(get<Func>(func).body, get<Func>(func).arg, "unit"),object);
+						split(match(get<Func>(func).body, " "+get<Func>(func).arg+" ", "unit"),object);
 						return expr(object);
 					}
 
 					for(auto post=0;post<args.size();post++){
 						auto arg=visit(loadVisitor{},expr(args[post]));
-						split(match(get<Func>(func).body, get<Func>(func).arg, arg),object);
+						split(match(get<Func>(func).body, " "+get<Func>(func).arg+" ", arg),object);
 						func = expr(object);
 					}
 
@@ -332,8 +325,6 @@ public:
 			if(code[0] == "true") return true;
 			else if(code[0] == "false") return false;
 			else if(code[0] == "unit") return Unit{};
-
-			if(types.find(code[0]) != types.end()) return *types.find(code[0]);
 
 			bool onlynum=1,onlypoint=1,
 			pb=code[0][0]=='(',

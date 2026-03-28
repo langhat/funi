@@ -21,8 +21,7 @@ typedef std::variant<
     //Map,
     //Set,
     //List,
-	Unit,       // Unit
-    Type,       // Type
+	Unit       // Unit
 > value;
 
 class Unit {};
@@ -34,19 +33,5 @@ struct Func {
     std::string arg,
         body;
 };
-
-enum BaseType{
-    Int,
-    Bool,
-    Real,
-    Str,
-    Unit_t,
-    Type_t
-};
-
-using Type = std::variant <
-    std::pair<std::unique_ptr<Type>, std::unique_ptr<Type> > ,
-    BaseType
->;
 
 #endif

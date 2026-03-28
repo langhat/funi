@@ -140,6 +140,7 @@ void split(std::string code,std::vector<std::string> &object){
 			break;
 		case CIRP:
 			//cout<<"!"<<string(1,code[i])<<"!\n";
+			token+=" ";
 			if(code[i]==')'){
 				st.pop();//quit cirp mode
 				token+=")";
@@ -148,6 +149,7 @@ void split(std::string code,std::vector<std::string> &object){
 			}
 			break;
 		case FLOP:
+			token+=" ";
 			if(code[i]=='}'){
 				st.pop();//quit cirp mode
 				token+="}";
