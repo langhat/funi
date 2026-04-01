@@ -9,6 +9,13 @@
 #include<functional>
 #include<fstream>
 
+#define DEBUG_TRACE do {cout<<"$";\
+	for(auto &ec: code)\
+		cout<<ec<<" ";\
+	\
+	cout<<"$\n";\
+} while(0)
+
 /*
 USAGE: match
 match `origin` and change it 2 `object` from `code`
@@ -104,6 +111,7 @@ class fiRunner{
 		return ret;
 	}
 public:
+	std::vector<std::string> error_trace;
 	fiRunner() {
 	}
 	void run(const std::string &code){
@@ -139,7 +147,7 @@ public:
 		vector<string> part[3];
 		int post=0;
 		
-		{
+		try {{
 			string a_s;
 			bool nohap=1;
 			for(const auto &ec:code){// wrong 结合性
@@ -187,6 +195,86 @@ public:
 				f.body=v2;
 				return f;
 			}else if(a_s.empty()){}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(ec=="if" || ec == "else"){
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(!nohap){
+				bool boolean;
+				try {boolean = get<bool>(expr(part[1]));}
+				catch(const exception &) {throw TypeError{};}
+
+				if(boolean) {
+					return expr(part[0]);
+				}
+				return expr(part[2]);
+
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(nohap&&(ec == ">=" ||
+					ec == "<=" ||
+					ec == "==" ||
+					ec == "<" ||
+					ec == ">" ||
+					ec == "!=")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s==">="){
+				value v1=expr(part[0]);
+				value v2=expr(part[1]);
+				return visit(greaterEqualVisitor{},v1,v2);
+			}
+			else if(a_s=="<="){
+				value v1=expr(part[0]);
+				value v2=expr(part[1]);
+				return visit(lessEqualVisitor{},v1,v2);
+			}
+			else if(a_s=="=="){
+				value v1=expr(part[0]);
+				value v2=expr(part[1]);
+				return visit(equalVisitor{},v1,v2);
+			}
+			else if(a_s=="<"){
+				value v1=expr(part[0]);
+				value v2=expr(part[1]);
+				return visit(lessVisitor{},v1,v2);
+			}
+			else if(a_s==">"){
+				value v1=expr(part[0]);
+				value v2=expr(part[1]);
+				return visit(greaterVisitor{},v1,v2);
+			}
+			else if(a_s=="!="){
+				value v1=expr(part[0]);
+				value v2=expr(part[1]);
+				return visit(notEqualVisitor{},v1,v2);
+			}
 			else{
 				throw NotExistError{};
 			}
@@ -300,7 +388,7 @@ public:
 				goto specialCallEnd;
 				LambdaCall:{
 					auto func=expr(part[1]);
-					
+
 					GetArgs
 					vector<string> object;
 					if(args.empty()) {
@@ -310,7 +398,10 @@ public:
 
 					for(auto post=0;post<args.size();post++){
 						auto arg=visit(loadVisitor{},expr(args[post]));
-						split(match(get<Func>(func).body, " "+get<Func>(func).arg+" ", arg),object);
+						split(match(get<Func>(func).body,
+							" " + get<Func>(func).arg + " ",
+							"( " + arg + " )"),
+							object);
 						func = expr(object);
 					}
 
@@ -376,6 +467,23 @@ public:
 		post=0;
 		
 		throw UncalableExpr{}; //return Unit{};
+
+		} catch (const exception &e) {
+			//错误处理
+			if(error_trace.empty()) {
+				error_trace.push_back(e.what());
+			}
+
+			string code_content;
+			for(auto &ec: code)
+				code_content += ec;
+			
+			error_trace.emplace_back(
+				string("[Note] here: ") +
+				code_content
+			);
+			throw;
+		}
 	}
 };
 

@@ -1,51 +1,16 @@
 #ifndef VISITOR_CPP
 #define VISITOR_CPP
 
-#include"value.cpp"
+#include "value.cpp"
+#include "comparision.cpp"
 
 #include <type_traits> // std::is_invocable_v
 #include <typeinfo>    // typeid
 #include <iomanip>
 #include <iostream>
 
-class SyntaxError;
-
-class TypeError:public SyntaxError{
-public:
-	const char *what()const noexcept{
-		return "SyntaxError : Use a operator with wrong types";
-	}
-};
-
-// class assignVisitor {
-// 	std::map<std::string,value> *mp;
-// public:
-	
-// 	assignVisitor(std::map<std::string,value> *p):mp(p){
-		
-// 	}
-	
-// 	template<typename T, typename T2>
-// 	value operator()(const T &l, const T2 &r) const {
-// 		if constexpr (std::is_same_v<std::decay_t<T>, Address>) {
-// 			(*mp)[l.address]=r;
-// 			return r;
-// 		} else {
-// 			throw TypeError{};
-// 		}
-// 	}
-// };
-
 class addVisitor {
 public:
-	value operator()(int l, int r) const {
-		return l + r;
-	}
-	
-	value operator()(double l, double r) const {
-		return l + r;
-	}
-	
 	template<typename T, typename T2>
 	value operator()(const T &l, const T2 &r) const {
 		if constexpr (std::is_invocable_v<decltype(std::plus<>{}), const T&, const T2&>) {
@@ -58,14 +23,6 @@ public:
 
 class subVisitor {
 public:
-	value operator()(int l, int r) const {
-		return l - r;
-	}
-	
-	value operator()(double l, double r) const {
-		return l - r;
-	}
-	
 	template<typename T, typename T2>
 	value operator()(const T &l, const T2 &r) const {
 		if constexpr (std::is_invocable_v<decltype(std::minus<>{}), const T&, const T2&>) {
@@ -78,14 +35,6 @@ public:
 
 class mulVisitor {
 public:
-	value operator()(int l, int r) const {
-		return l * r;
-	}
-	
-	value operator()(double l, double r) const {
-		return l * r;
-	}
-	
 	template<typename T, typename T2>
 	value operator()(const T &l, const T2 &r) const {
 		if constexpr (std::is_invocable_v<decltype(std::multiplies<>{}), const T&, const T2&>) {
@@ -98,14 +47,6 @@ public:
 
 class divVisitor {
 public:
-	value operator()(int l, int r) const {
-		return l / r;
-	}
-	
-	value operator()(double l, double r) const {
-		return l / r;
-	}
-	
 	template<typename T, typename T2>
 	value operator()(const T &l, const T2 &r) const {
 		if constexpr (std::is_invocable_v<decltype(std::divides<>{}), const T&, const T2&>) {
@@ -118,10 +59,6 @@ public:
 
 class modVisitor {
 public:
-	value operator()(int l, int r) const {
-		return l % r;
-	}
-	
 	template<typename T, typename T2>
 	value operator()(const T &l, const T2 &r) const {
 		if constexpr (std::is_invocable_v<decltype(std::modulus<>{}), const T&, const T2&>) {
@@ -213,7 +150,7 @@ public:
 	}
 	
 	std::string operator()(const Func& val) const {
-		return "("+val.arg+" -> "+val.body+")";
+		return "("+val.arg+" -> ( "+val.body+") )";
 	}
 
 	// 10. Unit（空类型）

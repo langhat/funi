@@ -43,7 +43,12 @@ class fiMain{
                     try {
                         fir.run (content);
                     } catch (const exception &e){
-                        cout << "\033[31m" << e.what() << "\033[0m";
+                        cout << "\033[31m";
+                        for(auto &ec: fir.error_trace) {
+                            cout<<ec<<endl;
+                        }
+                        fir.error_trace.clear();
+                        cout << "\033[0m";
                     }
                     cout<<endl;
                 }else if(args[i] == "expr") {
@@ -54,7 +59,12 @@ class fiMain{
                     try {
                         visit(printVisitor{}, fir.expr(object));
                     } catch (const exception &e){
-                        cout << "\033[31m" << e.what() << "\033[0m";
+                        cout << "\033[31m";
+                        for(auto &ec: fir.error_trace) {
+                            cout<<ec<<endl;
+                        }
+                        fir.error_trace.clear();
+                        cout << "\033[0m";
                     }
                     cout<<endl;
                 }else if(args[i] == "visit") {
@@ -67,7 +77,12 @@ class fiMain{
                     try {
                         fir.run (content);
                     } catch (const exception &e){
-                        cout << "\033[31m" << e.what() << "\033[0m";
+                        cout << "\033[31m";
+                        for(auto &ec: fir.error_trace) {
+                            cout<<ec<<endl;
+                        }
+                        fir.error_trace.clear();
+                        cout << "\033[0m";
                     }
 
                     vector<string> object;
@@ -91,7 +106,12 @@ class fiMain{
                             auto val = fir.expr(object);
                             if(!holds_alternative<Unit> (val)) visit(printVisitor{}, val);
                         } catch (const exception &e){
-                            cout << "\033[31m" << e.what() << "\033[0m";
+                            cout << "\033[31m";
+                            for(auto &ec: fir.error_trace) {
+                                cout<<ec<<endl;
+                            }
+                            fir.error_trace.clear();
+                            cout << "\033[0m";
                         }
                         cout<<endl;
                     }
