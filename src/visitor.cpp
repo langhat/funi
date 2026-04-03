@@ -159,6 +159,32 @@ public:
 	}
 };
 
+class typeofVisitor {
+public:
+	std::string operator()(long long val) const {
+		return "Int";
+	}
+	std::string operator()(bool val) const {
+		return "Bool";
+	}
+	
+	std::string operator()(long double val) const {
+		return "Real";
+	}
+	
+	std::string operator()(const std::string& val) const {
+		return "Str";
+	}
+	
+	std::string operator()(const Func& val) const {
+		return "Func";
+	}
+
+	std::string operator()(const Unit&) const {
+		return "Unit";
+	}
+};
+
 struct toi_visitor {
 	// long long -> long long
 	long long operator()(long long val) const {
@@ -301,5 +327,69 @@ long double tod(const value& v) {
 std::string tos(const value& v) {
 	return std::visit(tos_visitor(), v);
 }
+
+struct typeCastVisitor {
+    std::string targetType;
+
+    explicit typeCastVisitor(std::string t) : targetType(std::move(t)) {}
+
+    // Int -> 其他
+    value operator()(long long v) const
+    {
+        if(targetType == "Int")    return v;
+        if(targetType == "Real")   return (long double)v;
+        if(targetType == "Bool")   return v != 0;
+        if(targetType == "Str")    return std::to_string(v);
+        throw TypeError{};
+    }
+
+    // Bool -> 其他
+    value operator()(bool v) const
+    {
+        if(targetType == "Bool")   return v;
+        if(targetType == "Int")    return v ? 1LL : 0LL;
+        if(targetType == "Real")   return v ? 1.0L : 0.0L;
+        if(targetType == "Str")    return v ? "true" : "false";
+        throw TypeError{};
+    }
+
+    // Real -> 其他
+    value operator()(long double v) const
+    {
+        if(targetType == "Real")   return v;
+        if(targetType == "Int")    return (long long)v;
+        if(targetType == "Bool")   return v != 0.0L;
+        if(targetType == "Str")    return std::to_string(v);
+        throw TypeError{};
+    }
+
+    // Str -> 其他
+    value operator()(const std::string& v) const
+    {
+        if(targetType == "Str")    return v;
+        if(targetType == "Int")    return std::stoll(v);
+        if(targetType == "Real")   return std::stold(v);
+        if(targetType == "Bool")
+        {
+            if(v == "true")  return true;
+            if(v == "false") return false;
+            throw TypeError{};
+        }
+        throw TypeError{};
+    }
+
+    // Func 禁止任何转换
+    value operator()(const Func&) const
+    {
+        throw TypeError{};
+    }
+
+    // Unit 仅能转 Unit
+    value operator()(const Unit&) const
+    {
+        if(targetType == "Unit") return Unit{};
+        throw TypeError{};
+    }
+};
 
 #endif 
