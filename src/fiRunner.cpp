@@ -102,6 +102,14 @@ std::vector<T> back_vec(const std::vector<T> &vec){
 }
 
 class fiRunner{
+	std::set<std::string> types = {
+		"Int",
+		"Bool",
+		"Real",
+		"Str",
+		"Func",
+		"Unit"
+	};
 	std::map<std::string, value> valtb;
 	std::string vtoa(const std::vector<std::string> &vec){
 		std::string ret;
@@ -352,7 +360,75 @@ public:
 		}
 		part[0].clear();part[1].clear();part[2].clear();
 		post=0;
-		
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(nohap&&(ec == "..")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s==".."){
+				value v1=expr(part[0]);
+				string v2;
+
+				try {
+					v2=get<string>(expr(part[1]));
+				} catch(const exception &){
+					throw TypeError{};
+				}
+
+				if(visit(typeofVisitor{},v1) == v2) {
+					return v1;
+				}else throw TypeError{};
+			}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(nohap&&(ec == "as")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s=="as"){
+				value v1=expr(part[0]);
+				string v2;
+
+				try {
+					v2=get<string>(expr(part[1]));
+				} catch(const exception &){
+					throw TypeError{};
+				}
+
+		        if(types.find(v2) == types.end()) throw TypeError{};
+
+		        return visit(typeCastVisitor(v2), v1);
+			}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
 		{
 			string a_s;
 			bool nohap=1;
@@ -381,6 +457,7 @@ public:
 						return Unit{};
 					}else if(part[1][0] == "exit"){
 						exit(0);
+<<<<<<< HEAD
 					}else if(part[1][0] == "@") {
 						string filename;
 
@@ -411,6 +488,12 @@ public:
 						}
 
 						return Unit{};
+=======
+					}else if(part[1][0] == "typeof") {
+						GetArgs
+						auto arg=expr(args[0]);
+						return visit(typeofVisitor{},arg);;
+>>>>>>> 13aa573a1dbb9a474f747f45e198dc46814df142
 					}
 					else{
 						//a lambda or a func
@@ -451,6 +534,8 @@ public:
 			if(code[0] == "true") return true;
 			else if(code[0] == "false") return false;
 			else if(code[0] == "unit") return Unit{};
+
+			if(types.find(code[0]) != types.end()) return *types.find(code[0]);
 
 			bool onlynum=1,onlypoint=1,
 			pb=code[0][0]=='(',
