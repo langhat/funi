@@ -59,12 +59,10 @@ class fiMain{
                     try {
                         visit(printVisitor{}, fir.expr(object));
                     } catch (const exception &e){
-                        cout << "\033[31m";
                         for(auto &ec: fir.error_trace) {
                             cout<<ec<<endl;
                         }
                         fir.error_trace.clear();
-                        cout << "\033[0m";
                     }
                     cout<<endl;
                 }else if(args[i] == "visit") {

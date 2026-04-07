@@ -27,7 +27,7 @@ if(is_useless(code[i])){\
 	token+="{";\
 }\
 else if((code[i]>='a'&&code[i]<='z')||\
-	(code[i]>='A'&&code[i]<='Z')||code[i]=='_'||code[i]=='$'){\
+	(code[i]>='A'&&code[i]<='Z')||code[i]=='_'||code[i]=='$'||code[i]=='@'){\
 	st.push(ID);\
 	goto home;\
 }\
@@ -84,7 +84,7 @@ bool is_num(char ch){
 
 bool belongID(char ch){
 	return (ch>='a'&&ch<='z')||
-	(ch>='A'&&ch<='Z')||ch=='_'||ch=='$'||(ch>='0'&&ch<='9');
+	(ch>='A'&&ch<='Z')||ch=='_'||ch=='$'||(ch>='0'&&ch<='9')||ch=='@';
 }
 
 void split(std::string code,std::vector<std::string> &object){

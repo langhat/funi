@@ -112,12 +112,9 @@ class fiRunner{
 	}
 public:
 	std::vector<std::string> error_trace;
-	int line;
 	fiRunner() {
-		line = 0;
 	}
 	void run(const std::string &code){
-		line=0;
 		using namespace std;
 		vector<string> object;
 		split(code,object);
@@ -131,14 +128,12 @@ public:
 			if(ec!="\n"){
 				expr.push_back(ec);
 			}else{
-				line++;
 				auto result=this->expr(expr);
 				expr.clear();
 			}
 		}
 		
 		if(!expr.empty()){
-			line++;
 			auto result=this->expr(expr);
 			expr.clear();
 			//throw LessSemicolon{};
@@ -381,36 +376,6 @@ public:
 						return Unit{};
 					}else if(part[1][0] == "exit"){
 						exit(0);
-					}else if(part[1][0] == "@") {
-						string filename;
-
-						GetArgs
-						try {
-							filename = get<string>(expr(args[0]));
-						} catch(const exception &){
-							throw TypeError{};
-						}
-
-						ifstream ifp(filename);
-
-						string temp, content;
-						while(getline(ifp, temp)) {
-							content += (temp + "\n");
-						}
-
-						try {
-							int tl = line;
-							line = 0;
-							run(content);
-							line = tl;
-						} catch(const exception &e) {
-							error_trace.push_back(
-								string("[Note] in file \"") +
-								filename + "\"");
-							throw;
-						}
-
-						return Unit{};
 					}
 					else{
 						//a lambda or a func
@@ -427,13 +392,13 @@ public:
 					GetArgs
 					vector<string> object;
 					if(args.empty()) {
-						split(match(string(" ")+get<Func>(func).body+" ", " "+get<Func>(func).arg+" ", "unit"),object);
+						split(match(get<Func>(func).body, " "+get<Func>(func).arg+" ", "unit"),object);
 						return expr(object);
 					}
 
 					for(auto post=0;post<args.size();post++){
 						auto arg=visit(loadVisitor{},expr(args[post]));
-						split(match(string(" ")+get<Func>(func).body+" ",
+						split(match(get<Func>(func).body,
 							" " + get<Func>(func).arg + " ",
 							"( " + arg + " )"),
 							object);
@@ -507,7 +472,6 @@ public:
 			//错误处理
 			if(error_trace.empty()) {
 				error_trace.push_back(string("\033[31m") + e.what() + "\033[0m");
-				error_trace.push_back(string("[Note] line ") + to_string(line));
 			}
 
 			string code_content;
