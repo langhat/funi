@@ -121,9 +121,19 @@ class fiRunner{
 public:
 	std::vector<std::string> error_trace;
 	int line;
-	fiRunner() {
+	
+	std::vector<std::string> paths;
+
+	fiRunner(): paths{"lib/"} {
 		line = 0;
 	}
+
+	void load(const std::vector<std::string> &npaths) {
+		for(const auto &each: npaths) {
+			paths.push_back(each);
+		}
+	}
+
 	void run(const std::string &code){
 		line=0;
 		using namespace std;
@@ -457,8 +467,8 @@ public:
 						return Unit{};
 					}else if(part[1][0] == "exit"){
 						exit(0);
-<<<<<<< HEAD
 					}else if(part[1][0] == "@") {
+						//paths
 						string filename;
 
 						GetArgs
@@ -468,7 +478,15 @@ public:
 							throw TypeError{};
 						}
 
-						ifstream ifp(filename);
+						ifstream ifp;
+						ifp.close();
+						int index = 0;
+
+						while(!ifp) {
+							if(index == paths.size()) throw PackageNotFound{};
+							ifp.open(paths[index++] + filename);
+							cerr << paths[index] << filename << endl;
+						}
 
 						string temp, content;
 						while(getline(ifp, temp)) {
@@ -488,12 +506,10 @@ public:
 						}
 
 						return Unit{};
-=======
 					}else if(part[1][0] == "typeof") {
 						GetArgs
 						auto arg=expr(args[0]);
-						return visit(typeofVisitor{},arg);;
->>>>>>> 13aa573a1dbb9a474f747f45e198dc46814df142
+						return visit(typeofVisitor{},arg);
 					}
 					else{
 						//a lambda or a func

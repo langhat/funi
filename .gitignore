@@ -17,6 +17,11 @@
 # Debugger Files
 *.pdb
 
+# IDE Settings
+*~
+.vscode/
+.devfi
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
@@ -40,6 +45,7 @@
 # debug information files
 *.dwo
 
-# test files
+# test files or some tools
 funi
 test/
+tool/
