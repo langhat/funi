@@ -118,6 +118,7 @@ class fiRunner{
 		}
 		return ret;
 	}
+	std::set<value *> rubbish;
 public:
 	std::vector<std::string> error_trace;
 	int line;
@@ -126,6 +127,12 @@ public:
 
 	fiRunner(): paths{"lib/"} {
 		line = 0;
+	}
+
+	~fiRunner() {
+		for(const auto &each: rubbish) {
+			delete each;
+		}
 	}
 
 	void load(const std::vector<std::string> &npaths) {
@@ -485,12 +492,12 @@ public:
 						while(!ifp) {
 							if(index == paths.size()) throw PackageNotFound{};
 							ifp.open(paths[index++] + filename);
-							cerr << paths[index] << filename << endl;
+							//cerr << paths[index] << filename << endl;
 						}
 
 						string temp, content;
 						while(getline(ifp, temp)) {
-							content += (temp + "\n");
+							content += (temp + "\n\n");
 						}
 
 						try {

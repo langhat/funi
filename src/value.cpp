@@ -12,7 +12,7 @@ class Unit;
 class Func;
 class Type;
 
-typedef std::variant<
+using value = std::variant<
     long long,  // Int
     bool,       // Bool
 	long double,// Real
@@ -22,7 +22,8 @@ typedef std::variant<
     //Set,
     //List,
 	Unit       // Unit
-> value;
+    // ,std::map<std::string, value*> // Object
+>;
 
 class Unit {};
 
