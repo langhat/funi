@@ -67,7 +67,7 @@ enum state{
 
 bool is_operator(char ch){
 	return ch==';'||ch=='+'||ch=='-'||ch=='*'||ch=='/'||ch=='='||ch=='>'||ch=='<'||ch=='^'
-	||ch=='&'||ch=='%'||ch=='!'||ch=='$'||ch=='`'||ch=='~'||ch==','||ch=='.';
+	||ch=='&'||ch=='%'||ch=='!'||ch=='$'||ch=='`'||ch=='~'||ch==','||ch=='.'||ch==':';
 }
 
 bool is_useless(char ch){

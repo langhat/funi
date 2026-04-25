@@ -117,6 +117,23 @@ public:
 	void operator()(const Unit&) const {
 		std::cout << "unit";
 	}
+	
+	// 11. Object（对象类型）
+	void operator()(const Object* obj) const {
+		if (obj) {
+			std::cout << "{";
+			bool first = true;
+			for (const auto& pair : obj->properties) {
+				if (!first) std::cout << ", ";
+				std::cout << pair.first << ": ";
+				std::visit(get_child_visitor(), pair.second);
+				first = false;
+			}
+			std::cout << "}";
+		} else {
+			std::cout << "null";
+		}
+	}
 };
 
 class loadVisitor {
@@ -157,6 +174,23 @@ public:
 	std::string operator()(const Unit&) const {
 		return "unit";
 	}
+	
+	// 11. Object（对象类型）
+	std::string operator()(const Object* obj) const {
+		if (obj) {
+			std::string result = "{";
+			bool first = true;
+			for (const auto& pair : obj->properties) {
+				if (!first) result += ", ";
+				result += pair.first + ": " + std::visit(loadVisitor(), pair.second);
+				first = false;
+			}
+			result += "}";
+			return result;
+		} else {
+			return "null";
+		}
+	}
 };
 
 class typeofVisitor {
@@ -182,6 +216,10 @@ public:
 
 	std::string operator()(const Unit&) const {
 		return "Unit";
+	}
+	
+	std::string operator()(const Object*) const {
+		return "Object";
 	}
 };
 
@@ -215,6 +253,7 @@ struct toi_visitor {
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
 	long long operator()(const Func&) const { throw TypeError(); }
 	long long operator()(const Unit&) const { throw TypeError(); }
+	long long operator()(const Object*) const { throw TypeError(); }
 };
 
 // ====================== 2. tob_visitor：转换为 bool（仅基本类型） ======================
@@ -246,6 +285,7 @@ struct tob_visitor {
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
 	bool operator()(const Func&) const { throw TypeError(); }
 	bool operator()(const Unit&) const { throw TypeError(); }
+	bool operator()(const Object*) const { throw TypeError(); }
 };
 
 // ====================== 3. tod_visitor：转换为 long double（仅基本类型） ======================
@@ -279,6 +319,7 @@ struct tod_visitor {
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
 	long double operator()(const Func&) const { throw TypeError(); }
 	long double operator()(const Unit&) const { throw TypeError(); }
+	long double operator()(const Object*) const { throw TypeError(); }
 };
 
 // ====================== 4. tos_visitor：转换为 std::string（仅基本类型） ======================
@@ -309,6 +350,7 @@ struct tos_visitor {
 	// 自定义类型（仅占位，抛TypeError，避免编译报错）
 	std::string operator()(const Func&) const { throw TypeError(); }
 	std::string operator()(const Unit&) const { throw TypeError(); }
+	std::string operator()(const Object*) const { throw TypeError(); }
 };
 
 // ====================== 便捷调用函数（简化使用） ======================
@@ -385,11 +427,17 @@ struct typeCastVisitor {
     }
 
     // Unit 仅能转 Unit
-    value operator()(const Unit&) const
-    {
-        if(targetType == "Unit") return Unit{};
-        throw TypeError{};
-    }
+	value operator()(const Unit&) const
+	{
+		if(targetType == "Unit") return Unit{};
+		throw TypeError{};
+	}
+	
+	// Object 禁止任何转换
+	value operator()(const Object*) const
+	{
+		throw TypeError{};
+	}
 };
 
 #endif 

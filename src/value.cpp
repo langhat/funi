@@ -12,19 +12,6 @@ class Unit;
 class Func;
 class Type;
 
-using value = std::variant<
-    long long,  // Int
-    bool,       // Bool
-	long double,// Real
-    std::string,// Str
-    Func,       // Func
-    //Map,
-    //Set,
-    //List,
-	Unit       // Unit
-    // ,std::map<std::string, value*> // Object
->;
-
 class Unit {};
 
 struct Func {
@@ -34,5 +21,23 @@ struct Func {
     std::string arg,
         body;
 };
+
+class Object {
+public:
+    std::map<std::string, std::variant<long long, bool, long double, std::string, Func, Unit, Object*>> properties;
+};
+
+typedef std::variant<
+    long long,  // Int
+    bool,       // Bool
+	long double,// Real
+    std::string,// Str
+    Func,       // Func
+    //Map,
+    //Set,
+    //List,
+	Unit,       // Unit
+    Object*     // Object
+> value;
 
 #endif

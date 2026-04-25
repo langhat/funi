@@ -553,6 +553,44 @@ public:
 		part[0].clear();part[1].clear();part[2].clear();
 		post=0;
 		
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code | views::reverse){
+				if(nohap&&(ec == ".")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s=="."){
+				value v1=expr(part[1]);
+				string v2=part[0][0];
+
+				// 检查v1是否为Object类型
+				if(std::holds_alternative<Object*>(v1)){
+					Object* obj = std::get<Object*>(v1);
+					// 查找成员
+					if(obj->properties.find(v2) != obj->properties.end()){
+						return obj->properties[v2];
+					}else{
+						throw NotExistError{};
+					}
+				}else{
+					throw TypeError{};
+				}
+			}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
 		if(code.size()==1){
 			if(code[0] == "true") return true;
 			else if(code[0] == "false") return false;
@@ -572,19 +610,59 @@ public:
 				split(temp,tv);
 				return expr(tv);
 			}else if(fpb){
-				//func
-				// string temp=code[0].c_str()+1;
-				// temp.erase(temp.size()-1);
+				// Object literal
+				string temp=code[0].c_str()+1;
+				temp.erase(temp.size()-1);
 				
-				// Lambda lbd;
-				// lbd.codeBlock=match(temp,
-				// 	[&,this](const string &val){
-				// 		vector<string> tv;
-				// 		split(val,tv);
-				// 		return visit(loadVisitor{},expr(tv));
-				// 	}
-				// );
-				// return lbd;
+				// 创建一个新的Object对象
+				Object* obj = new Object();
+				
+				// 解析Object字面量中的token
+				vector<string> tokens;
+				split(temp, tokens);
+				
+				// 遍历tokens，提取键值对
+				for (size_t i = 0; i < tokens.size();) {
+					// 跳过逗号
+					if (tokens[i] == ",") {
+						i++;
+						continue;
+					}
+					
+					// 键值对格式：key : value
+					if (i + 2 < tokens.size() && tokens[i+1] == ":") {
+						string key = tokens[i];
+						
+						// 移除键的引号（如果是字符串字面量）
+						if (!key.empty() && key.size() >= 2 && 
+						    ((key.front() == '"' && key.back() == '"') || (key.front() == '\'' && key.back() == '\''))) {
+							key = key.substr(1, key.size() - 2);
+						}
+						
+						// 解析值表达式（从i+2开始，直到下一个逗号或结束）
+						vector<string> valueExpr;
+						for (size_t j = i + 2; j < tokens.size() && tokens[j] != ","; j++) {
+							valueExpr.push_back(tokens[j]);
+						}
+						
+						// 解析值表达式
+						value val = expr(valueExpr);
+						
+						// 将键值对添加到Object的properties中
+						obj->properties[key] = val;
+						
+						// 移动到下一个键值对
+						i += 2 + valueExpr.size();
+					} else {
+						// 格式错误，跳过当前token
+						i++;
+					}
+				}
+				
+				// 将Object*添加到rubbish中
+				rubbish.insert(new value(obj));
+				
+				return obj;
 			}else if(str){
 				string temp=code[0].c_str()+1;
 				temp.erase(temp.size()-1);

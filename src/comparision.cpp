@@ -1,8 +1,7 @@
 #pragma once
 
 #include"value.cpp"
-
-class SyntaxError;
+#include"spliter.cpp"
 
 class TypeError:public SyntaxError{
 public:
