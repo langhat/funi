@@ -388,113 +388,6 @@ public:
 		{
 			string a_s;
 			bool nohap=1;
-			for(const auto &ec:code){
-				if(nohap&&(ec == "..")){
-					a_s=ec;
-					post++;
-					nohap=0;
-				}else{
-					part[post].push_back(ec);
-				}
-			}
-			if(a_s.empty()){}
-			else if(a_s==".."){
-				value v1=expr(part[0]);
-				string v2;
-
-				try {
-					auto tmp = expr(part[1]);
-					if(tmp.index() == 6) { //Object
-						if(v1.index() != 6) throw TypeError{};
-						for(const auto &[key, _]: get<Object *>(tmp)->properties){
-							if(get<Object *>(v1)->properties.find(key) == get<Object *>(v1)->properties.end())
-								throw TypeError{};
-						}
-						return v1;
-					}
-					v2=get<string>(tmp);
-				} catch(const exception &){
-					throw TypeError{};
-				}
-
-				if(visit(typeofVisitor{},v1) == v2) {
-					return v1;
-				}else throw TypeError{};
-			}
-			else{
-				throw NotExistError{};
-			}
-		}
-		part[0].clear();part[1].clear();part[2].clear();
-		post=0;
-
-		{
-			string a_s;
-			bool nohap=1;
-			for(const auto &ec:code){
-				if(nohap&&(ec == "as")){
-					a_s=ec;
-					post++;
-					nohap=0;
-				}else{
-					part[post].push_back(ec);
-				}
-			}
-			if(a_s.empty()){}
-			else if(a_s=="as"){
-				value v1=expr(part[0]);
-				string v2;
-
-				try {
-					auto tmp = expr(part[1]);
-					if(tmp.index() == 6) { //Object
-						if(v1.index() == 6) { // first use v1 's type-cast function
-							if(get<Object *>(v1)->properties.find("to"+part[1][0])
-								!= get<Object *>(v1)->properties.end()) {
-								
-								auto func=(get<Object *>(v1)->properties.find("to"+part[1][0]))->second;
-
-								vector<string> object;
-								split(match(string(" ")+get<Func>(func).body+" ",
-										" "+get<Func>(func).arg+" ",
-										visit(loadVisitor{}, v1))
-									,object);
-								return expr(object);
-							}
-						}
-						if(get<Object *>(tmp)->properties.find("cast") ==
-							get<Object *>(tmp)->properties.end()) {
-							
-							auto func=get<Object *>(tmp)->properties.find("cast")->second;
-
-							vector<string> object;
-							split(match(string(" ")+get<Func>(func).body+" ",
-									" "+get<Func>(func).arg+" ",
-									visit(loadVisitor{}, v1))
-								,object);
-							return expr(object);
-						}
-						throw TypeError{};
-					}
-					v2=get<string>(tmp);
-				} catch(const exception &){
-					throw TypeError{};
-				}
-
-		        if(types.find(v2) == types.end()) throw TypeError{};
-
-		        return visit(typeCastVisitor(v2), v1);
-			}
-			else{
-				throw NotExistError{};
-			}
-		}
-		part[0].clear();part[1].clear();part[2].clear();
-		post=0;
-
-		{
-			string a_s;
-			bool nohap=1;
 			for(const auto &ec:code | views::reverse){
 				if(nohap&&(ec[0]=='(')){
 					a_s=ec;
@@ -589,8 +482,8 @@ public:
 
 					        else if constexpr (std::is_same_v<Type, Object*>) {
 					            if (arg == nullptr) return nullptr;
-					            
-								if(arg->properties.find("new") ==
+
+								if(arg->properties.find("new") !=
 									arg->properties.end()) {
 									
 									auto func=arg->properties.find("new")->second;
@@ -607,7 +500,8 @@ public:
 
 					            function<value(value&&)> lbd;
 					            lbd = [&lbd](auto&& v) -> value {
-					                return std::visit(lbd, v);
+					                return v;//std::visit(lbd, v);
+					            	//object light copy: WARN TODO
 					            };
 
 					            for (const auto& [key, val] : arg->properties) {
@@ -674,6 +568,8 @@ public:
 					part[post].push_back(ec);
 				}
 			}
+			part[0]=back_vec(part[0]);
+			part[1]=back_vec(part[1]);
 			if(a_s.empty()){}
 			else if(a_s=="."){
 				value v1=expr(part[1]);
@@ -691,6 +587,113 @@ public:
 				}else{
 					throw TypeError{};
 				}
+			}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(nohap&&(ec == "..")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s==".."){
+				value v1=expr(part[0]);
+				string v2;
+
+				try {
+					auto tmp = expr(part[1]);
+					if(tmp.index() == 6) { //Object
+						if(v1.index() != 6) throw TypeError{};
+						for(const auto &[key, _]: get<Object *>(tmp)->properties){
+							if(get<Object *>(v1)->properties.find(key) == get<Object *>(v1)->properties.end())
+								throw TypeError{};
+						}
+						return v1;
+					}
+					v2=get<string>(tmp);
+				} catch(const exception &){
+					throw TypeError{};
+				}
+
+				if(visit(typeofVisitor{},v1) == v2) {
+					return v1;
+				}else throw TypeError{};
+			}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(nohap&&(ec == "as")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s=="as"){
+				value v1=expr(part[0]);
+				string v2;
+
+				try {
+					auto tmp = expr(part[1]);
+					if(tmp.index() == 6) { //Object
+						if(v1.index() == 6) { // first use v1 's type-cast function
+							if(get<Object *>(v1)->properties.find("to"+part[1][0])
+								!= get<Object *>(v1)->properties.end()) {
+								
+								auto func=(get<Object *>(v1)->properties.find("to"+part[1][0]))->second;
+
+								vector<string> object;
+								split(match(string(" ")+get<Func>(func).body+" ",
+										" "+get<Func>(func).arg+" ",
+										visit(loadVisitor{}, v1))
+									,object);
+								return expr(object);
+							}
+						}
+						if(get<Object *>(tmp)->properties.find("cast") !=
+							get<Object *>(tmp)->properties.end()) {
+							
+							auto func=get<Object *>(tmp)->properties.find("cast")->second;
+
+							vector<string> object;
+							split(match(string(" ")+get<Func>(func).body+" ",
+									" "+get<Func>(func).arg+" ",
+									visit(loadVisitor{}, v1))
+								,object);
+							return expr(object);
+						}
+						throw TypeError{};
+					}
+					v2=get<string>(tmp);
+				} catch(const exception &){
+					throw TypeError{};
+				}
+
+		        if(types.find(v2) == types.end()) throw TypeError{};
+
+		        return visit(typeCastVisitor(v2), v1);
 			}
 			else{
 				throw NotExistError{};
