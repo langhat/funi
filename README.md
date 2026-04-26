@@ -29,6 +29,45 @@ addInt(1, 6) // 7
 ### Pure
 no varient here, everything is pure(*unless u use \_\_out this debug function*)
 
+### Object
+```funi
+obj = {
+	a: 1,
+	foo : self -> self.a
+}
+
+__out(obj)
+__out(obj.foo(obj)) // 1
+```
+
+#### .. and as
+```
+ClassA = {
+	a: 0,
+	foo: unit, //unit means a virtrual function
+	cast: unit
+}
+ClassB = {
+	b: 0
+}
+ClassC = {
+	toClassA: _ -> new(ClassA) //_ means self but it isn't used there so u should name it _
+}
+KidA = {
+	a: 0,
+	foo: self -> self.a,
+	cast: objectB -> {
+		a: objectB ..ClassB . a, // space is not nessary, but i introduce u add it
+		foo: KidA.foo,
+		cast: KidA.cast
+	}
+}
+objectKidA = new(KidA) // default copy it unless KidA rewrite new
+objectB = new(ClassB)
+objectB as KidA // the same as objectKidA
+objectB.. KidA //TypeError
+```
+
 ## Use It from Now on
 
 ### Clone

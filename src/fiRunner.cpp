@@ -92,6 +92,12 @@ class UncalableExpr:public SyntaxError{
 	}
 };
 
+class WrongArgsNum:public SyntaxError{
+	const char *what()const noexcept{
+		return "SyntaxError : Wrong args number";
+	}
+};
+
 template<typename T>
 std::vector<T> back_vec(const std::vector<T> &vec){
 	std::vector<T> ret;
@@ -108,6 +114,7 @@ class fiRunner{
 		"Real",
 		"Str",
 		"Func",
+		"Object",
 		"Unit"
 	};
 	std::map<std::string, value> valtb;
@@ -396,7 +403,16 @@ public:
 				string v2;
 
 				try {
-					v2=get<string>(expr(part[1]));
+					auto tmp = expr(part[1]);
+					if(tmp.index() == 6) { //Object
+						if(v1.index() != 6) throw TypeError{};
+						for(const auto &[key, _]: get<Object *>(tmp)->properties){
+							if(get<Object *>(v1)->properties.find(key) == get<Object *>(v1)->properties.end())
+								throw TypeError{};
+						}
+						return v1;
+					}
+					v2=get<string>(tmp);
 				} catch(const exception &){
 					throw TypeError{};
 				}
@@ -430,7 +446,37 @@ public:
 				string v2;
 
 				try {
-					v2=get<string>(expr(part[1]));
+					auto tmp = expr(part[1]);
+					if(tmp.index() == 6) { //Object
+						if(v1.index() == 6) { // first use v1 's type-cast function
+							if(get<Object *>(v1)->properties.find("to"+part[1][0])
+								!= get<Object *>(v1)->properties.end()) {
+								
+								auto func=(get<Object *>(v1)->properties.find("to"+part[1][0]))->second;
+
+								vector<string> object;
+								split(match(string(" ")+get<Func>(func).body+" ",
+										" "+get<Func>(func).arg+" ",
+										visit(loadVisitor{}, v1))
+									,object);
+								return expr(object);
+							}
+						}
+						if(get<Object *>(tmp)->properties.find("cast") ==
+							get<Object *>(tmp)->properties.end()) {
+							
+							auto func=get<Object *>(tmp)->properties.find("cast")->second;
+
+							vector<string> object;
+							split(match(string(" ")+get<Func>(func).body+" ",
+									" "+get<Func>(func).arg+" ",
+									visit(loadVisitor{}, v1))
+								,object);
+							return expr(object);
+						}
+						throw TypeError{};
+					}
+					v2=get<string>(tmp);
 				} catch(const exception &){
 					throw TypeError{};
 				}
@@ -517,7 +563,69 @@ public:
 						GetArgs
 						auto arg=expr(args[0]);
 						return visit(typeofVisitor{},arg);
+					}else if(part[1][0] == "copy" || part[1][0] == "new") {
+					    GetArgs
+
+					    if (args.size() != 1) {
+					        throw WrongArgsNum{};
+					    }
+
+					    value original_val = expr(args[0]);
+					    
+
+					    value copied_val = std::visit([this](auto&& arg) -> value {
+					        using Type = std::decay_t<decltype(arg)>;
+
+					        if constexpr (
+					            std::is_same_v<Type, long long>    || // Int
+					            std::is_same_v<Type, long double>  || // Real
+					            std::is_same_v<Type, bool>         || // Bool
+					            std::is_same_v<Type, std::string>  || // Str
+					            std::is_same_v<Type, Func>         || // Func
+					            std::is_same_v<Type, Unit>            // Unit
+					        ) {
+					            return arg;
+					        }
+
+					        else if constexpr (std::is_same_v<Type, Object*>) {
+					            if (arg == nullptr) return nullptr;
+					            
+								if(arg->properties.find("new") ==
+									arg->properties.end()) {
+									
+									auto func=arg->properties.find("new")->second;
+
+									vector<string> object;
+									split(match(string(" ")+get<Func>(func).body+" ",
+											" "+get<Func>(func).arg+" ",
+											"unit")
+										,object);
+									return expr(object);
+								}
+
+					            Object* new_obj = new Object();
+
+					            function<value(value&&)> lbd;
+					            lbd = [&lbd](auto&& v) -> value {
+					                return std::visit(lbd, v);
+					            };
+
+					            for (const auto& [key, val] : arg->properties) {
+					                new_obj->properties[key] = std::visit(lbd, val);
+					            }
+
+					            rubbish.insert(new value(new_obj));
+					            return new_obj;
+					        }
+
+					        else {
+					            throw TypeError{};
+					        }
+					    }, original_val);
+
+					    return copied_val;
 					}
+
 					else{
 						//a lambda or a func
 						goto LambdaCall;
