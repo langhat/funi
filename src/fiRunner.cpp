@@ -518,6 +518,87 @@ public:
 					    }, original_val);
 
 					    return copied_val;
+					}else if(part[1][0] == "for"){
+						GetArgs
+
+						vector<string> object;
+						auto result = expr(args[0]);
+						auto obj = expr(args[1]);
+						auto list = get<Object *>(obj); //list->properties["begin"]
+
+						value begin = list->properties["begin"];
+						split(match(string(" ")+get<Func>(begin).body+" ",
+								" "+get<Func>(begin).arg+" ",
+								visit(loadVisitor{}, obj))
+							,object);
+						begin = expr(object);
+						object.clear();
+
+						value end = list->properties["end"];
+						split(match(string(" ")+get<Func>(end).body+" ",
+								" "+get<Func>(end).arg+" ",
+								visit(loadVisitor{}, obj))
+							,object);
+						end = expr(object);
+						object.clear();
+
+						auto func = expr(args[2]);
+
+
+						while(get<bool>(visit(notEqualVisitor{}, begin, end))) {
+							value item;
+							//calc
+							if(begin.index() == 0) {
+								item = get<long long>(begin);
+							}else if(begin.index() == 6) {
+								if(get<Object *>(begin)->properties.find("get") !=
+									get<Object *>(begin)->properties.end()){
+
+									auto getf = get<Object *>(begin)->properties["get"];
+									split(match(string(" ")+get<Func>(getf).body+" ",
+											" "+get<Func>(getf).arg+" ",
+											visit(loadVisitor{}, begin))
+										,object);
+									item = expr(object);
+									object.clear();
+								}
+							}else{
+								throw TypeError{};
+							}
+
+							split(match(string(" ")+get<Func>(func).body+" ",
+									" "+get<Func>(func).arg+" ",
+									visit(loadVisitor{},result))
+								,object);
+							result = expr(object);
+							object.clear();
+
+							split(match(string(" ")+get<Func>(result).body+" ",
+									" "+get<Func>(result).arg+" ",
+									visit(loadVisitor{},item))
+								,object);
+							result = expr(object);
+							object.clear();
+
+							//step
+							if(begin.index() == 0) {
+								begin = get<long long>(begin) + 1;
+							}else if(begin.index() == 6) {
+								if(get<Object *>(begin)->properties.find("next") !=
+									get<Object *>(begin)->properties.end()){
+									auto nextf = get<Object *>(begin)->properties["next"];
+									split(match(string(" ")+get<Func>(nextf).body+" ",
+											" "+get<Func>(nextf).arg+" ",
+											visit(loadVisitor{}, begin))
+										,object);
+									begin = expr(object);
+									object.clear();
+								}
+							}else{
+								throw TypeError{};
+							}
+						}
+						return result;
 					}
 
 					else{
