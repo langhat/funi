@@ -1,0 +1,15 @@
+Math = {
+    pi: 3.141592653589793,
+    e: 2.718281828459045,
+    add: a -> b -> a + b,
+    sub: a -> b -> a - b,
+    mul: a -> b -> a * b,
+    div: a -> b -> a / b,
+    mod: a -> b -> a % b,
+    min: a -> b -> (a if (a < b) else b),
+    max: a -> b -> (a if (a > b) else b),
+    abs: x -> ((0 - x) if (x < 0) else x),
+    sign: x -> (1 if (x > 0) else ((0 - 1) if (x < 0) else 0)),
+    neg: x -> (0 - x),
+    pow: base -> exp -> (1 if (exp == 0) else (base * Math.pow(base, exp - 1)))
+}
