@@ -410,6 +410,7 @@ public:
 						GetArgs
 						auto arg=expr(args[0]);
 						visit(printVisitor{},arg);
+						cout << '\n';
 						return Unit{};
 					}else if(part[1][0] == "exit"){
 						exit(0);

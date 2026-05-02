@@ -147,21 +147,22 @@ object.member
 示例：
 
 ```funi
-point.x          # 获取属性
-point.distance(point)  # 调用方法
+point.x          // 获取属性
+point.distance(point)  // 调用方法
 ```
 
-### 类型转换
+### 类型转换 / 断言
 
 ```funi
-expression .. Type
+expression as Type
+expression .. Type // 如果不符的话TypeError
 ```
 
 示例：
 
 ```funi
-x = 3.14 .. Int   # 3
-y = 5 .. Real     # 5.0
+x = 3.14 as Int   // 3
+y = 5 as Real     // 5.0
 ```
 
 ## 语句

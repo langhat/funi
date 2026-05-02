@@ -9,6 +9,7 @@
 - [标准库](./standard-library.md) - 内置函数和库
 - [API 参考](./api-reference.md) - 完整的 API 文档
 - [示例代码](./examples.md) - 使用示例
+- [约定俗成](./regulation.md) - 一些标准和规定
 
 ## 关于 funi
 

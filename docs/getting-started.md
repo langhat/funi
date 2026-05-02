@@ -126,8 +126,8 @@ max = a -> b -> if a > b -> a -> b
 ### 类型转换
 
 ```funi
-x = 3.14 .. Int  # 结果为 3
-y = 5 .. Real    # 结果为 5.0
+x = 3.14 as Int  # 结果为 3
+y = 5 .. Real    # TypeError, `..`代表类型断言
 ```
 
 ### 导入文件
