@@ -1,6 +1,8 @@
 math = {
     pi: 3.141592653589793,
     e: 2.718281828459045,
+    nan: @get_nan(),
+    inf: @get_inf(),
     add: a -> b -> a + b,
     sub: a -> b -> a - b,
     mul: a -> b -> a * b,
@@ -11,5 +13,15 @@ math = {
     abs: x -> ((0 - x) if (x < 0) else x),
     sign: x -> (1 if (x > 0) else ((0 - 1) if (x < 0) else 0)),
     neg: x -> (0 - x),
-    pow: base -> exp -> (1 if (exp == 0) else (base * Math.pow(base, exp - 1)))
+    pow: base -> exp -> @pow(base as Real, exp as Real),
+    sqrt: k -> @pow(base as Real, 0.5),
+    if_nan: k -> @if_nan(k ..Real),
+    if_inf: k -> @if_inf(k ..Real),
+    log: k -> @log(k ..Real),
+    sin: k -> @sin(k ..Real),
+    cos: k -> @cos(k ..Real),
+    tan: k -> @tan(k ..Real),
+    asin: k -> @asin(k ..Real),
+    acos: k -> @acos(k ..Real),
+    atan: k -> @atan(k ..Real)
 }

@@ -8,6 +8,7 @@
 #include<ranges>
 #include<functional>
 #include<fstream>
+#include <cmath>
 
 #define DEBUG_TRACE do {cout<<"$";\
 	for(auto &ec: code)\
@@ -98,6 +99,12 @@ class WrongArgsNum:public SyntaxError{
 	}
 };
 
+class ConfigError:public SyntaxError{
+	const char *what()const noexcept{
+		return "SyntaxError : Config file grammer was wrong";
+	}
+};
+
 template<typename T>
 std::vector<T> back_vec(const std::vector<T> &vec){
 	std::vector<T> ret;
@@ -126,6 +133,7 @@ class fiRunner{
 		return ret;
 	}
 	std::set<value *> rubbish;
+	std::set<std::string> inced;
 public:
 	std::vector<std::string> error_trace;
 	int line;
@@ -133,8 +141,31 @@ public:
 	std::vector<std::string> paths;
 
 	fiRunner(): paths{"lib/"} {
+		using namespace std;
 		line = 0;
+
+		ifstream ifp("funi_config.fi");
+		if(!ifp) return;
+
+		string temp, content;
+		while(getline(ifp, temp)) {
+			content += temp + "\n";
+		}
+
+		fiRunner fir(0); // avoid seg error
+		vector<string> object;
+		split(content, object);
+		try {
+			const auto config = get<Object *>(fir.expr(object))->properties;
+			for(const auto &[note, path]: get<Object *>(config.find("path")->second)->properties) {
+				paths.push_back(get<string>(path));
+			}
+		}catch(const exception &) {
+			throw ConfigError{};
+		}
 	}
+
+	fiRunner(int li): line(li) {}
 
 	~fiRunner() {
 		for(const auto &each: rubbish) {
@@ -406,7 +437,9 @@ public:
 				if(part[1].empty()){}
 				else if(part[1].size()==1){
 					//special
-					if(part[1][0]=="__out"){
+					if(part[1][0][0] == "@" && part[1][0] != "@"){
+						return specCall(part[1][0], a_s);
+					}else if(part[1][0]=="__out"){
 						GetArgs
 						auto arg=expr(args[0]);
 						visit(printVisitor{},arg);
@@ -428,10 +461,17 @@ public:
 						ifstream ifp;
 						ifp.close();
 						int index = 0;
+						bool ninctw = true;
 
 						while(!ifp) {
-							if(index == paths.size()) throw PackageNotFound{};
-							ifp.open(paths[index++] + filename);
+							if(index == paths.size() && ninctw) throw PackageNotFound{};
+							if(!inced.count(paths[index++] + filename)){
+								ifp.open(paths[index-1] + filename);
+								if(ifp) inced.insert(paths[index-1] + filename);
+							}else {
+								cerr << "[Warning] Include \'" << filename << "\' for twice\n";
+								ninctw = false;
+							}
 							//cerr << paths[index] << filename << endl;
 						}
 
@@ -898,6 +938,87 @@ public:
 				code_content
 			);
 			throw;
+		}
+	}
+	value specCall(const std::string &part, const std::string &a_s) {
+		using namespace std;
+		GetArgs
+
+		if(part == "@pow") {
+			try {
+				return pow(get<long double>(args[0]), get<long double>(args[1]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@if_nan") {
+			try {
+				return isnan(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@get_nan") {
+			try {
+				return nan("");
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@if_inf") {
+			try {
+				return isinf(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@get_inf") {
+			try {
+				return INFINITY;
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@log") {
+			try {
+				return log(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@sin") {
+			try {
+				return sin(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@cos") {
+			try {
+				return cos(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@tan") {
+			try {
+				return tan(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else else if(part == "@asin") {
+			try {
+				return asin(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@acos") {
+			try {
+				return acos(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}else if(part == "@atan") {
+			try {
+				return atan(get<long double>(args[0]));
+			}catch(const exception &){
+				throw TypeError{};
+			}
+		}
+		else {
+			return Unit{};
 		}
 	}
 };

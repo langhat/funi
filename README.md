@@ -84,3 +84,6 @@ g++ src/main.cpp -o funi -std=c++20
 ```bash
 ./funi repl
 ```
+
+### Read Docs
+click [here](./docs/index.md)

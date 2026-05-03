@@ -50,3 +50,6 @@ funi
 test/
 tool/
 test_*
+
+# config file
+funi_config.fi
