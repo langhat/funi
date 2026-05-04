@@ -1,0 +1,8 @@
+logic = {
+	not: x -> false if x else true,
+	and: a -> b -> false if a == false else b,
+	or: a -> b -> true if a else b,
+	xor: a -> b -> true if a != b else false,
+	nand: a -> b -> false if a else (false if b else true),
+	nor: a -> b -> true if a == false else (true if b == false else false)
+}

@@ -1,0 +1,8 @@
+functional = {
+	compose: f -> g -> x -> f(g(x)),
+	pipe: f -> g -> x -> g(f(x)),
+	flip: f -> a -> b -> f(b, a),
+	identity: x -> x,
+	const: x -> _ -> x,
+	apply: f -> x -> f(x)
+}

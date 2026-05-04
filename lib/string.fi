@@ -1,0 +1,11 @@
+string = {
+	concat: a -> b -> a + b,
+	is_empty: s -> s == "",
+	is_not_empty: s -> s != "",
+	eq: a -> b -> a == b,
+	neq: a -> b -> a != b,
+	lt: a -> b -> a < b,
+	gt: a -> b -> a > b,
+	lte: a -> b -> a <= b,
+	gte: a -> b -> a >= b
+}
