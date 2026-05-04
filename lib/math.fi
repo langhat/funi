@@ -14,7 +14,7 @@ math = {
     sign: x -> (1 if (x > 0) else ((0 - 1) if (x < 0) else 0)),
     neg: x -> (0 - x),
     pow: base -> exp -> @pow(base as Real, exp as Real),
-    sqrt: k -> @pow(base as Real, 0.5),
+    sqrt: k -> @pow(k as Real, 0.5),
     if_nan: k -> @if_nan(k ..Real),
     if_inf: k -> @if_inf(k ..Real),
     log: k -> @log(k ..Real),

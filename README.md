@@ -27,7 +27,7 @@ addInt(1, 6) // 7
 ```
 
 ### Pure
-no varient here, everything is pure(*unless u use \_\_out this debug function*)
+no varient here, everything is pure(**unless u use `\_\_out` this debug function**)
 
 ### Object
 ```funi

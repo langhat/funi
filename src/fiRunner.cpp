@@ -160,6 +160,8 @@ public:
 			for(const auto &[note, path]: get<Object *>(config.find("path")->second)->properties) {
 				paths.push_back(get<string>(path));
 			}
+			split(get<Func>((config.find("init")->second)).body, object);
+			this->expr(object);
 		}catch(const exception &) {
 			throw ConfigError{};
 		}
@@ -437,7 +439,7 @@ public:
 				if(part[1].empty()){}
 				else if(part[1].size()==1){
 					//special
-					if(part[1][0][0] == "@" && part[1][0] != "@"){
+					if(part[1][0][0] == '@' && part[1][0] != "@"){
 						return specCall(part[1][0], a_s);
 					}else if(part[1][0]=="__out"){
 						GetArgs
@@ -946,13 +948,13 @@ public:
 
 		if(part == "@pow") {
 			try {
-				return pow(get<long double>(args[0]), get<long double>(args[1]));
+				return pow(get<long double>(expr(args[0])), get<long double>(expr(args[1])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
 		}else if(part == "@if_nan") {
 			try {
-				return isnan(get<long double>(args[0]));
+				return isnan(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
@@ -964,7 +966,7 @@ public:
 			}
 		}else if(part == "@if_inf") {
 			try {
-				return isinf(get<long double>(args[0]));
+				return isinf(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
@@ -976,43 +978,43 @@ public:
 			}
 		}else if(part == "@log") {
 			try {
-				return log(get<long double>(args[0]));
+				return log(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
 		}else if(part == "@sin") {
 			try {
-				return sin(get<long double>(args[0]));
+				return sin(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
 		}else if(part == "@cos") {
 			try {
-				return cos(get<long double>(args[0]));
+				return cos(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
 		}else if(part == "@tan") {
 			try {
-				return tan(get<long double>(args[0]));
+				return tan(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
-		}else else if(part == "@asin") {
+		}else if(part == "@asin") {
 			try {
-				return asin(get<long double>(args[0]));
+				return asin(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
 		}else if(part == "@acos") {
 			try {
-				return acos(get<long double>(args[0]));
+				return acos(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}
 		}else if(part == "@atan") {
 			try {
-				return atan(get<long double>(args[0]));
+				return atan(get<long double>(expr(args[0])));
 			}catch(const exception &){
 				throw TypeError{};
 			}

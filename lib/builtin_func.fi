@@ -1,0 +1,6 @@
+__out = k -> __out(k)
+exit = _ -> exit()
+typeof = k -> typeof(k)
+copy = k -> copy(k)
+new = k -> new(k)
+for = init -> v -> c -> for(init, v, c)

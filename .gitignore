@@ -20,7 +20,7 @@
 # IDE Settings
 *~
 .vscode/
-.devfi
+.vs/
 
 # Compiled Dynamic libraries
 *.so
@@ -47,8 +47,6 @@
 
 # test files or some tools
 funi
-test/
-tool/
 test_*
 
 # config file
