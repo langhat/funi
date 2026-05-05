@@ -12,6 +12,7 @@ docs/
 ├── standard-library.md # 标准库文档
 ├── api-reference.md   # API 参考
 ├── examples.md        # 示例代码
+├── regulation.md      # 惯例
 └── contributing.md    # 贡献指南（本文件）
 ```
 

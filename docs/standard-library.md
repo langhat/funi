@@ -8,6 +8,8 @@ funi 提供了一些内置的标准库，可以通过 `@()` 导入使用。
 lib/
 - math.fi
 - builtin_func.fi # default included
+- functional.fi
+- logic.fi
 ```
 
 ### math.fi
@@ -80,6 +82,89 @@ lib/
 ### builtin_func.fi
 一个封装文件, 因为内置函数不是一个callable, 所以做了这个封装
 
+### `functional` 库文档
+
+#### 概述
+
+---
+
+#### `compose`
+从右向左组合两个函数。  
+**参数**：`f` (函数), `g` (函数), `x` (任意值)  
+**返回**：`f(g(x))`  
+**示例**：
+```
+add1 = x -> x + 1
+double = x -> x * 2
+add1ThenDouble = functional.compose(double)(add1)
+add1ThenDouble(3)  # 8
+```
+
+---
+
+#### `pipe`
+从左向右组合两个函数。  
+**参数**：`f` (函数), `g` (函数), `x` (任意值)  
+**返回**：`g(f(x))`  
+**示例**：
+```
+add1 = x -> x + 1
+double = x -> x * 2
+add1ThenDouble = functional.pipe(add1)(double)
+add1ThenDouble(3)  # 8
+```
+
+---
+
+#### `flip`
+交换二元函数的前两个参数顺序。  
+**参数**：`f` (二元函数), `a`, `b`  
+**返回**：`f(b, a)`  
+**示例**：
+```
+sub = (x, y) -> x - y
+flippedSub = functional.flip(sub)
+flippedSub(5)(3)  # -2  (实际计算 sub(3,5))
+```
+
+---
+
+#### `identity`
+返回输入值本身。  
+**参数**：`x`  
+**返回**：`x`  
+**示例**：
+```
+functional.identity(42)      # 42
+functional.identity("hello") # "hello"
+```
+
+---
+
+#### `const`
+常量函数，忽略第二个参数，始终返回第一个参数。  
+**参数**：`x`, `_` (任意值，被忽略)  
+**返回**：`x`  
+**示例**：
+```
+alwaysFive = functional.const(5)
+alwaysFive("anything")  # 5
+```
+
+---
+
+#### `apply`
+将一个函数应用于一个值。  
+**参数**：`f` (函数), `x` (任意值)  
+**返回**：`f(x)`  
+**示例**：
+```
+add1 = x -> x + 1
+functional.apply(add1)(10)  # 11
+```
+
+### logic.fi
+一些逻辑运算
 
 ## 创建自定义库
 

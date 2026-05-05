@@ -1,0 +1,11 @@
+// math_example.fi
+@("math.fi")
+
+__out(math.pow(2, 8))
+__out(math.pow(10, 3))
+__out(math.pow(2.0, 0))
+__out(math.pow(5, 2))
+__out(math.pow(math.e, math.pi))
+__out(math.log(math.e))
+__out(math.nan)
+__out(math.inf)

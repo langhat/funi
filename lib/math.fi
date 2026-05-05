@@ -17,11 +17,11 @@ math = {
     sqrt: k -> @pow(k as Real, 0.5),
     if_nan: k -> @if_nan(k ..Real),
     if_inf: k -> @if_inf(k ..Real),
-    log: k -> @log(k ..Real),
-    sin: k -> @sin(k ..Real),
-    cos: k -> @cos(k ..Real),
-    tan: k -> @tan(k ..Real),
-    asin: k -> @asin(k ..Real),
-    acos: k -> @acos(k ..Real),
-    atan: k -> @atan(k ..Real)
+    log: k -> @log(k as Real),
+    sin: k -> @sin(k as Real),
+    cos: k -> @cos(k as Real),
+    tan: k -> @tan(k as Real),
+    asin: k -> @asin(k as Real),
+    acos: k -> @acos(k as Real),
+    atan: k -> @atan(k as Real)
 }

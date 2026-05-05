@@ -1,0 +1,11 @@
+// lambda.fi
+
+add_int = a -> b -> a ..Int + b ..Int
+
+__out(add_int(1, 2))
+__out(add_int(5)(2)) // 不推荐这么写
+
+add1 = add_int(1)
+
+__out(add1(2))
+__out(add1)

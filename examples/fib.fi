@@ -1,0 +1,8 @@
+// fib.fi
+// run `time ./funi run example/fib.fi`
+fib = k -> 1 if k < 3 else fib(k-1) + fib(k-2) // fast
+__out(fib(35))
+
+// real	0m0.013s
+// user	0m0.012s
+// sys	0m0.000s

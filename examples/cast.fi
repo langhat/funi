@@ -1,0 +1,11 @@
+// cast.fi
+
+@("math.fi")
+math.cos(0)
+math.cos(0.0)
+
+foo = k -> k ..Int
+
+foo(5) // 5
+// foo(5.1) // TypeError
+foo(5.1 as Int)

@@ -1,0 +1,7 @@
+// typeof.fi
+
+__out(typeof(typeof))
+__out(typeof("123"))
+__out(typeof(123))
+__out(typeof(123.0))
+__out(typeof({}))
