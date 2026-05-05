@@ -1,2 +1,0 @@
-test = k -> __out(k)
-test2 = _ -> __out("hi")

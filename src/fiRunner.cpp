@@ -134,6 +134,9 @@ class fiRunner{
 	}
 	std::set<value *> rubbish;
 	std::set<std::string> inced;
+
+	std::map<std::vector<std::string>, value> cache;
+
 public:
 	std::vector<std::string> error_trace;
 	int line;
@@ -213,7 +216,8 @@ public:
 		using namespace std;
 
 		if(code.empty()) return Unit {};
-		
+		if(cache.find(code) != cache.end())return cache.find(code)->second;
+
 		vector<string> part[3];
 		int post=0;
 		
@@ -288,9 +292,9 @@ public:
 				catch(const exception &) {throw TypeError{};}
 
 				if(boolean) {
-					return expr(part[0]);
+					return cache[code] = expr(part[0]);
 				}
-				return expr(part[2]);
+				return cache[code] = expr(part[2]);
 
 			}
 		}
@@ -369,12 +373,12 @@ public:
 			if(a_s=="+"){
 				value v1=expr(part[0]);
 				value v2=expr(part[1]);
-				return visit(addVisitor{},v2,v1);
+				return cache[code] = visit(addVisitor{},v2,v1);
 			}else if(a_s.empty()){}
 			else if(a_s=="-"){
 				value v1=expr(part[0]);
 				value v2=expr(part[1]);
-				return visit(subVisitor{},v2,v1);
+				return cache[code] = visit(subVisitor{},v2,v1);
 			}
 			else{
 				throw NotExistError{};
@@ -400,16 +404,16 @@ public:
 			if(a_s=="*"){
 				value v1=expr(part[0]);
 				value v2=expr(part[1]);
-				return visit(mulVisitor{},v2,v1);
+				return cache[code] = visit(mulVisitor{},v2,v1);
 			}else if(a_s.empty()){}
 			else if(a_s=="/"){
 				value v1=expr(part[0]);
 				value v2=expr(part[1]);
-				return visit(divVisitor{},v2,v1);
+				return cache[code] = visit(divVisitor{},v2,v1);
 			}else if(a_s=="%"){
 				value v1=expr(part[0]);
 				value v2=expr(part[1]);
-				return visit(modVisitor{},v2,v1);
+				return cache[code] = visit(modVisitor{},v2,v1);
 			}
 			else{
 				throw NotExistError{};
@@ -440,7 +444,7 @@ public:
 				else if(part[1].size()==1){
 					//special
 					if(part[1][0][0] == '@' && part[1][0] != "@"){
-						return specCall(part[1][0], a_s);
+						return cache[code] = specCall(part[1][0], a_s);
 					}else if(part[1][0]=="__out"){
 						GetArgs
 						auto arg=expr(args[0]);
@@ -494,7 +498,7 @@ public:
 							throw;
 						}
 
-						return Unit{};
+						return cache[code] = Unit{};
 					}else if(part[1][0] == "typeof") {
 						GetArgs
 						auto arg=expr(args[0]);
@@ -641,7 +645,7 @@ public:
 								throw TypeError{};
 							}
 						}
-						return result;
+						return cache[code] = result;
 					}
 
 					else{
@@ -660,7 +664,7 @@ public:
 					vector<string> object;
 					if(args.empty()) {
 						split(match(string(" ")+get<Func>(func).body+" ", " "+get<Func>(func).arg+" ", "unit"),object);
-						return expr(object);
+						return cache[code] = expr(object);
 					}
 
 					for(auto post=0;post<args.size();post++){
@@ -672,7 +676,7 @@ public:
 						func = expr(object);
 					}
 
-					return func;
+					return cache[code] = func;
 				}specialCallEnd:;
 			}
 		}
@@ -704,7 +708,7 @@ public:
 					Object* obj = std::get<Object*>(v1);
 					// 查找成员
 					if(obj->properties.find(v2) != obj->properties.end()){
-						return obj->properties[v2];
+						return cache[code] = obj->properties[v2];
 					}else{
 						throw NotExistError{};
 					}
@@ -744,7 +748,7 @@ public:
 							if(get<Object *>(v1)->properties.find(key) == get<Object *>(v1)->properties.end())
 								throw TypeError{};
 						}
-						return v1;
+						return cache[code] = v1;
 					}
 					v2=get<string>(tmp);
 				} catch(const exception &){
@@ -752,7 +756,7 @@ public:
 				}
 
 				if(visit(typeofVisitor{},v1) == v2) {
-					return v1;
+					return cache[code] = v1;
 				}else throw TypeError{};
 			}
 			else{
@@ -793,7 +797,7 @@ public:
 										" "+get<Func>(func).arg+" ",
 										visit(loadVisitor{}, v1))
 									,object);
-								return expr(object);
+								return cache[code] = expr(object);
 							}
 						}
 						if(get<Object *>(tmp)->properties.find("cast") !=
@@ -806,7 +810,7 @@ public:
 									" "+get<Func>(func).arg+" ",
 									visit(loadVisitor{}, v1))
 								,object);
-							return expr(object);
+							return cache[code] = expr(object);
 						}
 						throw TypeError{};
 					}
@@ -817,7 +821,7 @@ public:
 
 		        if(types.find(v2) == types.end()) throw TypeError{};
 
-		        return visit(typeCastVisitor(v2), v1);
+		        return cache[code] = visit(typeCastVisitor(v2), v1);
 			}
 			else{
 				throw NotExistError{};
@@ -831,7 +835,7 @@ public:
 			else if(code[0] == "false") return false;
 			else if(code[0] == "unit") return Unit{};
 
-			if(types.find(code[0]) != types.end()) return *types.find(code[0]);
+			if(types.find(code[0]) != types.end()) return cache[code] = *types.find(code[0]);
 
 			bool onlynum=1,onlypoint=1,
 			pb=code[0][0]=='(',
@@ -843,7 +847,7 @@ public:
 				temp.erase(temp.size()-1);
 				vector<string> tv;
 				split(temp,tv);
-				return expr(tv);
+				return cache[code] = expr(tv);
 			}else if(fpb){
 				// Object literal
 				string temp=code[0].c_str()+1;
@@ -897,11 +901,11 @@ public:
 				// 将Object*添加到rubbish中
 				rubbish.insert(new value(obj));
 				
-				return obj;
+				return cache[code] = obj;
 			}else if(str){
 				string temp=code[0].c_str()+1;
 				temp.erase(temp.size()-1);
-				return temp;
+				return cache[code] = temp;
 			}
 			for(auto &ec:code[0]){
 				if(ec<'0'||ec>'9'){
@@ -913,11 +917,11 @@ public:
 				}
 			}
 			if(onlynum){
-				return stoll(code[0]);
+				return cache[code] = stoll(code[0]);
 			}else if(onlypoint){
-				return stold(code[0]);
+				return cache[code] = stold(code[0]);
 			}else if(valtb.find(code[0])!=valtb.end()){
-				return valtb[code[0]];
+				return cache[code] = valtb[code[0]];
 			}
 		}
 		post=0;

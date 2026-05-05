@@ -1,7 +1,0 @@
-array = {
-	range: start -> end -> {
-		begin: _ -> start,
-		end: _ -> end
-	},
-	fold: f -> init -> iterable -> for(init, iterable, f)
-}
