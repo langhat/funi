@@ -105,6 +105,12 @@ class ConfigError:public SyntaxError{
 	}
 };
 
+class MatchMiss:public SyntaxError{
+	const char *what()const noexcept{
+		return "SyntaxError : a uncountable `match`";
+	}
+};
+
 template<typename T>
 std::vector<T> back_vec(const std::vector<T> &vec){
 	std::vector<T> ret;
@@ -268,6 +274,29 @@ public:
 				f.arg=v1;
 				f.body=v2;
 				return f;
+			}else if(a_s.empty()){}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
+				if(nohap&&(ec==",")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s==","){
+				expr(part[0]);
+				return expr(part[1]);
 			}else if(a_s.empty()){}
 			else{
 				throw NotExistError{};
@@ -646,6 +675,21 @@ public:
 							}
 						}
 						return cache[code] = result;
+					}else if(part[1][0] == "match") {
+						GetArgs
+						auto val=visit(loadVisitor{}, expr(args[0]));
+						vector<string> object;
+						for(int index = 1; index < args.size(); index+=2) {
+							const auto cond = get<Func>(expr(args[index]));
+							split(match(string(" ")+cond.body+" ",
+									" "+cond.arg+" ",
+									val)
+								,object);
+							if(get<bool>(expr(object))) {
+								return expr(args[index + 1]);
+							}
+						}
+						throw MatchMiss{};
 					}
 
 					else{
