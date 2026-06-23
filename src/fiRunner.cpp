@@ -111,6 +111,12 @@ class MatchMiss:public SyntaxError{
 	}
 };
 
+class BadMemory:public SyntaxError{
+	const char *what()const noexcept{
+		return "SyntaxError : Memory operation failed";
+	}
+};
+
 template<typename T>
 std::vector<T> back_vec(const std::vector<T> &vec){
 	std::vector<T> ret;
@@ -407,6 +413,7 @@ public:
 			else if(a_s=="-"){
 				value v1=expr(part[0]);
 				value v2=expr(part[1]);
+				if(part[1].empty())v2 = 0;
 				return cache[code] = visit(subVisitor{},v2,v1);
 			}
 			else{
@@ -874,6 +881,59 @@ public:
 		part[0].clear();part[1].clear();part[2].clear();
 		post=0;
 
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code | views::reverse){
+				if(nohap&&(ec.size() > 0)&&(ec[0] == '[')){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(!a_s.empty()) {
+				part[0] = back_vec(part[0]);
+				part[1] = back_vec(part[1]);
+				if(part[1].empty()){
+					a_s.erase(a_s.size()-1);
+					a_s = a_s.c_str() + 1;
+					GetArgs
+					string builder = "{";
+					for(int index = 0; index < args.size(); index++) {
+						builder += "_" + to_string(index) + " : ";
+						builder += visit(loadVisitor{}, expr(args[index]));
+						builder += ", ";
+					}
+					builder += "}";
+					return expr(builder);
+				}
+				Object *obj;
+				int index;
+				try {
+					obj= get<Object *>(expr(part[1]));
+					a_s.erase(a_s.size()-1);
+					a_s = a_s.c_str() + 1;
+					vector<string> object;
+					split(a_s, object);
+					index= get<long long>(expr(object));
+				}catch(const exception &){
+					throw TypeError{};
+				}
+				if(auto it = obj->properties.find("_" + to_string(index)); it != obj->properties.end()) {
+					return it->second;
+				}else {
+					if(auto it = obj->properties.find("item"); it != obj->properties.end()) {
+						return expr(visit(loadVisitor{}, it->second) + "(" + to_string(index) + ")");
+					}
+					throw BadMemory{};
+				}
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
 		if(code.size()==1){
 			if(code[0] == "true") return true;
 			else if(code[0] == "false") return false;
@@ -1066,10 +1126,27 @@ public:
 			}catch(const exception &){
 				throw TypeError{};
 			}
+		}else if(part == "@member_fetch") {
+			try {
+				const auto &obj = get<Object *>(expr(args[0]))->properties;
+				const auto &mem =get<string>(expr(args[1]));
+				if(auto it = obj.find(mem); it != obj.end()) {
+					return it->second;
+				}else {
+					return Unit{};
+				}
+			}catch(const exception &){
+				throw TypeError{};
+			}
 		}
 		else {
 			return Unit{};
 		}
+	}
+	value expr(const std::string &code) {
+		std::vector<std::string> object;
+		split(code, object);
+		return expr(object);
 	}
 };
 

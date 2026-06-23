@@ -133,9 +133,13 @@ public:
                 ofp.close();
             }else if(args[i] == "new") {
                 const auto &path = args[++i];
-
+#ifdef _WIN32
+                mkdir((path + "docs").c_str());
+                mkdir((path + "src").c_str());
+#else
                 mkdir((path + "docs").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
                 mkdir((path + "src").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+#endif
 
                 ofstream ofp(path + "docs/index.md");
                 ofp.close();

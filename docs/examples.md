@@ -301,16 +301,9 @@ safeDivide(10, 0)        # Division by zero
 
 ## 性能优化
 
-### 24. 尾递归优化
+### 24. 记忆化
+auto
 
-```funi
-# 尾递归版本
-factorialTail = n -> acc ->
-    n if n == 0 else factorialTail(n - 1)(n * acc)
-
-factorial = n -> factorialTail(n)(1)
-__out(factorial(5))  # 120
-```
 
 ## 常见模式
 

@@ -25,6 +25,9 @@ if(is_useless(code[i])){\
 }else if(code[i]=='{'){\
 	st.push(FLOP);\
 	token+="{";\
+}else if(code[i]=='['){\
+	st.push(MIDP);\
+	token+="[";\
 }\
 else if((code[i]>='a'&&code[i]<='z')||\
 	(code[i]>='A'&&code[i]<='Z')||code[i]=='_'||code[i]=='$'||code[i]=='@'){\
@@ -63,6 +66,7 @@ enum state{
 	WAIT,
 	ENTER,
 	COMMENT,// '//...'
+	MIDP, // []
 };
 
 bool is_operator(char ch){
@@ -153,6 +157,15 @@ void split(std::string code,std::vector<std::string> &object){
 			if(code[i]=='}'){
 				st.pop();//quit cirp mode
 				token+="}";
+			}else{
+				shiftState
+			}
+			break;
+		case MIDP:
+			token+=" ";
+			if(code[i]==']'){
+				st.pop();//quit cirp mode
+				token+="]";
 			}else{
 				shiftState
 			}
