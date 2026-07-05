@@ -1,0 +1,9 @@
+// routes.fi
+
+app = {
+	routes : [
+		["/greet", k -> "Hello, " + k]
+	]
+}
+
+@apply_app(app, 7890)

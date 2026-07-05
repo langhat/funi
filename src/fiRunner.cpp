@@ -9,13 +9,14 @@
 #include<functional>
 #include<fstream>
 #include <cmath>
+#include "../include/crow_all.h"
 
-#define DEBUG_TRACE do {cout<<"$";\
-	for(auto &ec: code)\
-		cout<<ec<<" ";\
-	\
-	cout<<"$\n";\
-} while(0)
+// #define DEBUG_TRACE do {cout<<"$";\
+// 	for(auto &ec: code)\
+// 		cout<<ec<<" ";\
+// 	\
+// 	cout<<"$\n";\
+// } while(0)
 
 /*
 USAGE: match
@@ -148,6 +149,8 @@ class fiRunner{
 	std::set<std::string> inced;
 
 	std::map<std::vector<std::string>, value> cache;
+
+	std::map<std::string, crow::SimpleApp> apps;
 
 public:
 	std::vector<std::string> error_trace;
@@ -1126,18 +1129,44 @@ public:
 			}catch(const exception &){
 				throw TypeError{};
 			}
-		}else if(part == "@member_fetch") {
-			try {
-				const auto &obj = get<Object *>(expr(args[0]))->properties;
-				const auto &mem =get<string>(expr(args[1]));
-				if(auto it = obj.find(mem); it != obj.end()) {
-					return it->second;
-				}else {
-					return Unit{};
-				}
-			}catch(const exception &){
-				throw TypeError{};
-			}
+		}else if(part == "@apply_app") {
+		    try {
+		        const auto &obj = get<Object *>(expr(args[0]))->properties;
+		        const int port_num = int(get<long long>(expr(args[1])));
+		        const auto mem = "routes";
+		        if(auto it = obj.find(mem); it != obj.end()) {
+		            const auto &arr = get<Object *>(it->second)->properties;
+		            crow::SimpleApp app;
+		            for(const auto &[_, pair]: arr) {
+		                const auto &route_pair = get<Object *>(pair)->properties;
+		                const string route_name = get<string>(route_pair.find("_0")->second);
+		                const string process_func = visit(loadVisitor{}, route_pair.find("_1")->second);
+
+		                // 修改 lambda 以匹配 Crow 的预期签名
+						app.route_dynamic(std::string{route_name})([this, process_func](const crow::request& req) -> crow::response {
+						    auto v_str = req.url_params.get("v");
+						    if (!v_str) {
+						        return crow::response(400, "Missing parameter 'v'");
+						    }
+						    const auto tmp = string("(") + process_func + ")(\"" + v_str + "\")";
+						    std::cerr << "Evaluating: " << tmp << std::endl;
+						    try {
+						        return crow::response(get<string>(expr(tmp)));
+						    } catch (const exception &) {
+						        return crow::response(500, "Internal error");
+						    }
+						});
+		            }
+		            cout << "Start listening in " << port_num << "\n";
+		            app.port(port_num).multithreaded().run();
+		            exit(0);
+		        } else {
+		            throw TypeError{};
+		        }
+		    } catch (const exception &) {
+		    	throw;
+		        throw TypeError{};
+		    }
 		}
 		else {
 			return Unit{};
