@@ -116,6 +116,14 @@ b[9] // 1
 true_expr if condition else false_expr
 ```
 
+### 分支表达式
+
+```funi
+match (cond_fun1, val1,
+       cond_fun2, val2,
+       ...)
+```
+
 ### 函数表达式
 
 ```funi
