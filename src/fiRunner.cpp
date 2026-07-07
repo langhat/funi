@@ -23,15 +23,15 @@ match `origin` and change it 2 `object` from `code`
 */
 std::string match(std::string code,
 	const std::string& origin, const std::string& object) {
-    if (origin.empty()) {
-        return code;
-    }
-    size_t pos = 0;
-    while ((pos = code.find(origin, pos)) != std::string::npos) {
-        code.replace(pos, origin.length(), object);
-        pos += object.length();
-    }
-    return code;
+	if (origin.empty()) {
+		return code;
+	}
+	size_t pos = 0;
+	while ((pos = code.find(origin, pos)) != std::string::npos) {
+		code.replace(pos, origin.length(), object);
+		pos += object.length();
+	}
+	return code;
 }
 
 #include"spliter.cpp"
@@ -540,31 +540,31 @@ public:
 						auto arg=expr(args[0]);
 						return visit(typeofVisitor{},arg);
 					}else if(part[1][0] == "copy" || part[1][0] == "new") {
-					    GetArgs
+						GetArgs
 
-					    if (args.size() != 1) {
-					        throw WrongArgsNum{};
-					    }
+						if (args.size() != 1) {
+							throw WrongArgsNum{};
+						}
 
-					    value original_val = expr(args[0]);
-					    
+						value original_val = expr(args[0]);
+						
 
-					    value copied_val = std::visit([this](auto&& arg) -> value {
-					        using Type = std::decay_t<decltype(arg)>;
+						value copied_val = std::visit([this](auto&& arg) -> value {
+							using Type = std::decay_t<decltype(arg)>;
 
-					        if constexpr (
-					            std::is_same_v<Type, long long>    || // Int
-					            std::is_same_v<Type, long double>  || // Real
-					            std::is_same_v<Type, bool>         || // Bool
-					            std::is_same_v<Type, std::string>  || // Str
-					            std::is_same_v<Type, Func>         || // Func
-					            std::is_same_v<Type, Unit>            // Unit
-					        ) {
-					            return arg;
-					        }
+							if constexpr (
+								std::is_same_v<Type, long long>    || // Int
+								std::is_same_v<Type, long double>  || // Real
+								std::is_same_v<Type, bool>         || // Bool
+								std::is_same_v<Type, std::string>  || // Str
+								std::is_same_v<Type, Func>         || // Func
+								std::is_same_v<Type, Unit>            // Unit
+							) {
+								return arg;
+							}
 
-					        else if constexpr (std::is_same_v<Type, Object*>) {
-					            if (arg == nullptr) return nullptr;
+							else if constexpr (std::is_same_v<Type, Object*>) {
+								if (arg == nullptr) return nullptr;
 
 								if(arg->properties.find("new") !=
 									arg->properties.end()) {
@@ -579,28 +579,28 @@ public:
 									return expr(object);
 								}
 
-					            Object* new_obj = new Object();
+								Object* new_obj = new Object();
 
-					            function<value(value&&)> lbd;
-					            lbd = [&lbd](auto&& v) -> value {
-					                return v;//std::visit(lbd, v);
-					            	//object light copy: WARN TODO
-					            };
+								function<value(value&&)> lbd;
+								lbd = [&lbd](auto&& v) -> value {
+									return v;//std::visit(lbd, v);
+									//object light copy: WARN TODO
+								};
 
-					            for (const auto& [key, val] : arg->properties) {
-					                new_obj->properties[key] = std::visit(lbd, val);
-					            }
+								for (const auto& [key, val] : arg->properties) {
+									new_obj->properties[key] = std::visit(lbd, val);
+								}
 
-					            rubbish.insert(new value(new_obj));
-					            return new_obj;
-					        }
+								rubbish.insert(new value(new_obj));
+								return new_obj;
+							}
 
-					        else {
-					            throw TypeError{};
-					        }
-					    }, original_val);
+							else {
+								throw TypeError{};
+							}
+						}, original_val);
 
-					    return copied_val;
+						return copied_val;
 					}else if(part[1][0] == "for"){
 						GetArgs
 
@@ -870,9 +870,9 @@ public:
 					throw TypeError{};
 				}
 
-		        if(types.find(v2) == types.end()) throw TypeError{};
+				if(types.find(v2) == types.end()) throw TypeError{};
 
-		        return cache[code] = visit(typeCastVisitor(v2), v1);
+				return cache[code] = visit(typeCastVisitor(v2), v1);
 			}
 			else{
 				throw NotExistError{};
@@ -978,7 +978,7 @@ public:
 						
 						// 移除键的引号（如果是字符串字面量）
 						if (!key.empty() && key.size() >= 2 && 
-						    ((key.front() == '"' && key.back() == '"') || (key.front() == '\'' && key.back() == '\''))) {
+							((key.front() == '"' && key.back() == '"') || (key.front() == '\'' && key.back() == '\''))) {
 							key = key.substr(1, key.size() - 2);
 						}
 						
@@ -1127,57 +1127,61 @@ public:
 				throw TypeError{};
 			}
 		}else if(part == "@apply_app" || part == "@apply_flask_app") {
-		    try {
-		        const auto &obj = get<Object *>(expr(args[0]))->properties;
-		        const int port_num = int(get<long long>(expr(args[1])));
-		        const auto mem = "routes";
-		        if(auto it = obj.find(mem); it != obj.end()) {
-		            const auto &arr = get<Object *>(it->second)->properties;
-		            string flaskapp = "from flask import Flask\nimport subprocess\napp = Flask(__name__)\n";
-		            for(const auto &[_, pair]: arr) {
-		                const auto &route_pair = get<Object *>(pair)->properties;
-		                const string route_name = get<string>(route_pair.find("_0")->second);
-		                const string process_func = visit(loadVisitor{}, route_pair.find("_1")->second);
-		                string argstr, argstrs, argstrs_ = "{";
-		                for(const auto &ec: process_func) {
-		                	if(ec == '-') {
-		                		if(argstr == "_"){
-		                			argstr = "";
-		                			continue;
-		                		}
-		                		argstrs += argstr + ",";
-		                		argstrs_ += argstr + "},{";
-		                		argstr = "";
-		                	}else if(ec == '>') {
+			try {
+				const auto &obj = get<Object *>(expr(args[0]))->properties;
+				const int port_num = int(get<long long>(expr(args[1])));
+				const auto mem = "routes";
+				if(auto it = obj.find(mem); it != obj.end()) {
+					const auto &arr = get<Object *>(it->second)->properties;
+					string flaskapp = "from flask import Flask\nimport subprocess\napp = Flask(__name__)\n";
+					for(const auto &[_, pair]: arr) {
+						const auto &route_pair = get<Object *>(pair)->properties;
+						const string route_name = get<string>(route_pair.find("_0")->second);
+						const string process_func = visit(loadVisitor{}, route_pair.find("_1")->second);
+						string argstr, argstrs, argstrs_ = "{";
+						for(const auto &ec: process_func) {
+							if(ec == '-') {
+								if(argstr == "_"){
+									argstr = "";
+									continue;
+								}
+								argstrs += argstr + ",";
+								argstrs_ += argstr + "},{";
+								argstr = "";
+							}else if(ec == '>') {
 
-		                	}else if((ec >= 'A' && ec <= 'Z') || (ec >= 'a' && ec <= 'z')){
-		                		argstr += string(1, ec);
-		                	}
-		                }
-		                argstrs = argstrs.substr(0, argstrs.size() - 1);
-		                argstrs_ = argstrs_.substr(0, argstrs_.size() - 2);
+							}else if((ec >= 'A' && ec <= 'Z') || (ec >= 'a' && ec <= 'z')){
+								argstr += string(1, ec);
+							}
+						}
+						argstrs = argstrs.substr(0, argstrs.size() - 1);
+						argstrs_ = argstrs_.substr(0, argstrs_.size() - 2);
 
-		                if (argstrs_ == "{}")argstrs_ = {};
+						if (argstrs_ == "{}")argstrs_ = {};
 
-		                const string route_str =
-		                "@app.route('" + route_name + "')\ndef route_" + to_string(rand()) + "(" + argstrs + "):\n" +
-		                " result = subprocess.run([\"./funi\", \"expr\", f'''(" + process_func + ")(\""+ argstrs_ + "\")'''], capture_output=True, text=True).stdout\n" +
-		                " return result\n";
+						const string route_str =
+						"@app.route('" + route_name + "')\ndef route_" + to_string(rand()) + "(" + argstrs + "):\n" +
+						" result = subprocess.run([\"./funi\", \"expr\", f'''(" + process_func + ")(\""+ argstrs_ + "\")'''], capture_output=True, text=True).stdout\n" +
+						" return result\n";
 
-		                flaskapp += route_str;
-		            }
-		            flaskapp += "if __name__ == '__main__':\n app.run(debug=False, port=" + to_string(port_num) + ")\n";
-		            ofstream ofp("temp_flask_app.py");
-		            ofp << flaskapp;
-		            ofp.close();
-		            exit(system("python3 temp_flask_app.py"));
-		        } else {
-		            throw TypeError{};
-		        }
-		    } catch (const exception &) {
-		    	throw;
-		        throw TypeError{};
-		    }
+						flaskapp += route_str;
+					}
+					flaskapp += "if __name__ == '__main__':\n app.run(debug=False, port=" + to_string(port_num) + ")\n";
+					ofstream ofp("temp_flask_app.py");
+					ofp << flaskapp;
+					ofp.close();
+					exit(system("python"
+#ifndef _WIN32
+						"3"
+#endif
+						" temp_flask_app.py"));
+				} else {
+					throw TypeError{};
+				}
+			} catch (const exception &) {
+				throw;
+				throw TypeError{};
+			}
 		}
 		else {
 			return Unit{};

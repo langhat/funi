@@ -16,11 +16,11 @@ std::string path_fetch(const std::string &path){
 }
 
 int main(int ac,char **av){
-    std::vector<std::string> args;
-    for(int i=1;i<ac;i++){
-        args.emplace_back(av[i]);
-    }
-    fiPath=path_fetch(av[0]);
-    fiMain fi(args);
-    return fi.run();
+	std::vector<std::string> args;
+	for(int i=1;i<ac;i++){
+		args.emplace_back(av[i]);
+	}
+	fiPath=path_fetch(av[0]);
+	fiMain fi(args);
+	return fi.run();
 }
