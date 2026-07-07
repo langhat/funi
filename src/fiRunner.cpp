@@ -9,7 +9,6 @@
 #include<functional>
 #include<fstream>
 #include <cmath>
-#include "../include/crow_all.h"
 
 // #define DEBUG_TRACE do {cout<<"$";\
 // 	for(auto &ec: code)\
@@ -149,8 +148,6 @@ class fiRunner{
 	std::set<std::string> inced;
 
 	std::map<std::vector<std::string>, value> cache;
-
-	std::map<std::string, crow::SimpleApp> apps;
 
 public:
 	std::vector<std::string> error_trace;
@@ -1129,37 +1126,51 @@ public:
 			}catch(const exception &){
 				throw TypeError{};
 			}
-		}else if(part == "@apply_app") {
+		}else if(part == "@apply_app" || part == "@apply_flask_app") {
 		    try {
 		        const auto &obj = get<Object *>(expr(args[0]))->properties;
 		        const int port_num = int(get<long long>(expr(args[1])));
 		        const auto mem = "routes";
 		        if(auto it = obj.find(mem); it != obj.end()) {
 		            const auto &arr = get<Object *>(it->second)->properties;
-		            crow::SimpleApp app;
+		            string flaskapp = "from flask import Flask\nimport subprocess\napp = Flask(__name__)\n";
 		            for(const auto &[_, pair]: arr) {
 		                const auto &route_pair = get<Object *>(pair)->properties;
 		                const string route_name = get<string>(route_pair.find("_0")->second);
 		                const string process_func = visit(loadVisitor{}, route_pair.find("_1")->second);
+		                string argstr, argstrs, argstrs_ = "{";
+		                for(const auto &ec: process_func) {
+		                	if(ec == '-') {
+		                		if(argstr == "_"){
+		                			argstr = "";
+		                			continue;
+		                		}
+		                		argstrs += argstr + ",";
+		                		argstrs_ += argstr + "},{";
+		                		argstr = "";
+		                	}else if(ec == '>') {
 
-		                // 修改 lambda 以匹配 Crow 的预期签名
-						app.route_dynamic(std::string{route_name})([this, process_func](const crow::request& req) -> crow::response {
-						    auto v_str = req.url_params.get("v");
-						    if (!v_str) {
-						        return crow::response(400, "Missing parameter 'v'");
-						    }
-						    const auto tmp = string("(") + process_func + ")(\"" + v_str + "\")";
-						    std::cerr << "Evaluating: " << tmp << std::endl;
-						    try {
-						        return crow::response(get<string>(expr(tmp)));
-						    } catch (const exception &) {
-						        return crow::response(500, "Internal error");
-						    }
-						});
+		                	}else if((ec >= 'A' && ec <= 'Z') || (ec >= 'a' && ec <= 'z')){
+		                		argstr += string(1, ec);
+		                	}
+		                }
+		                argstrs = argstrs.substr(0, argstrs.size() - 1);
+		                argstrs_ = argstrs_.substr(0, argstrs_.size() - 2);
+
+		                if (argstrs_ == "{}")argstrs_ = {};
+
+		                const string route_str =
+		                "@app.route('" + route_name + "')\ndef route_" + to_string(rand()) + "(" + argstrs + "):\n" +
+		                " result = subprocess.run([\"./funi\", \"expr\", f'''(" + process_func + ")(\""+ argstrs_ + "\")'''], capture_output=True, text=True).stdout\n" +
+		                " return result\n";
+
+		                flaskapp += route_str;
 		            }
-		            cout << "Start listening in " << port_num << "\n";
-		            app.port(port_num).multithreaded().run();
-		            exit(0);
+		            flaskapp += "if __name__ == '__main__':\n app.run(debug=False, port=" + to_string(port_num) + ")\n";
+		            ofstream ofp("temp_flask_app.py");
+		            ofp << flaskapp;
+		            ofp.close();
+		            exit(system("python3 temp_flask_app.py"));
 		        } else {
 		            throw TypeError{};
 		        }

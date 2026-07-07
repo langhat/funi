@@ -2,8 +2,9 @@
 
 app = {
 	routes : [
-		["/greet", k -> "Hello, " + k]
+		["/greet/<name>", name -> "Hello, " + name],
+		["/", _ -> "Home"]
 	]
 }
 
-@apply_app(app, 7890)
+@apply_app(app, 5000)

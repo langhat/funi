@@ -52,6 +52,6 @@ test_*
 # config file
 funi_config.fi
 
-# vibe coding
-node_modules/
-package*.json
+# temp
+tmp/
+temp_*

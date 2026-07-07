@@ -83,10 +83,22 @@ objectB.. KidA    // TypeError
 git clone http://github.com/langhat/funi.git
 ```
 
+### 依赖
+
+Windows:
+```bash
+python -m pip install flask
+```
+
+Other:
+```bash
+python3 -m pip install flask
+```
+
 ### 编译
 
 ```bash
-g++ src/main.cpp -o funi -std=c++20 -lpthread -lboost_system
+g++ src/main.cpp -o funi -std=c++20
 ```
 
 ### 运行 RePL 进行尝试
@@ -105,6 +117,3 @@ g++ src/main.cpp -o funi -std=c++20 -lpthread -lboost_system
 <a href="https://github.com/langhat/funi/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=langhat/funi" />
 </a>
-
-#### 使用的开源项目
-[Crow](https://github.com/CrowCpp/Crow) - for routes
