@@ -3,7 +3,8 @@
 app = {
 	routes : [
 		["/greet/<name>", name -> "Hello, " + name],
-		["/", _ -> "Home"]
+		["/", _ -> "Home"],
+		["/code", _ -> @read_all(@open("examples/routes.fi"))]
 	]
 }
 
