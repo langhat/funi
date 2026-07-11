@@ -1368,7 +1368,7 @@ public:
 		}else if(part == "@put") {
 			try {
 				const auto file_name = get<string>(expr(args[0]));
-				const auto data = visit(printVisitor{},expr(args[1]));
+				const auto data = visit(tos_visitor{},expr(args[1]));
 				
 				auto it = file_handle.find(file_name);
 				if (it == file_handle.end() || !it->second.is_open())
