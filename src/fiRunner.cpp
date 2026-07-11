@@ -1210,157 +1210,175 @@ public:
 				throw TypeError{};
 			}
 		}else if (part == "@read_all") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        auto &fs = it->second;
-		        fs.seekg(0, ios::end);
-		        streamsize size = fs.tellg();
-		        fs.seekg(0, ios::beg);
-		        string content(size, '\0');
-		        fs.read(content.data(), size);
-		        return content;
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				auto &fs = it->second;
+				fs.seekg(0, ios::end);
+				streamsize size = fs.tellg();
+				fs.seekg(0, ios::beg);
+				string content(size, '\0');
+				fs.read(content.data(), size);
+				return content;
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@write") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        const auto data = get<string>(expr(args[1]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        auto &fs = it->second;
-		        fs.seekp(0, ios::beg);
-		        fs.write(data.c_str(), data.size());
-		        fs.flush();
-		        return Unit{};
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				const auto data = get<string>(expr(args[1]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+
+				auto &fs = it->second;
+				// 关闭并重新打开（覆盖模式）
+				fs.close();
+				fs.open(file_name, ios::out | ios::trunc);  // 必须确保打开模式正确
+				if (!fs) throw runtime_error("reopen failed");
+				fs << data;   // 或 fs.write(data.c_str(), data.size());
+				fs.flush();
+				return Unit{};
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@append") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        const auto data = get<string>(expr(args[1]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        auto &fs = it->second;
-		        fs.seekp(0, ios::end);
-		        fs.write(data.c_str(), data.size());
-		        fs.flush();
-		        return Unit{};
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				const auto data = get<string>(expr(args[1]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				auto &fs = it->second;
+				fs.seekp(0, ios::end);
+				fs.write(data.c_str(), data.size());
+				fs.flush();
+				return Unit{};
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@read_line") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        string line;
-		        if (getline(it->second, line))
-		            return line;
-		        else
-		            return string{};
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				string line;
+				if (getline(it->second, line))
+					return line;
+				else
+					return string{};
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@tellg") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        return static_cast<long long>(it->second.tellg());
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				return static_cast<long long>(it->second.tellg());
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@seekg") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        const auto pos = get<long long>(expr(args[1]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        it->second.seekg(static_cast<streamoff>(pos));
-		        return Unit{};
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				const auto pos = get<long long>(expr(args[1]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				it->second.seekg(static_cast<streamoff>(pos));
+				return Unit{};
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@eof") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        return it->second.eof();
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				return it->second.eof();
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@flush") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        it->second.flush();
-		        return Unit{};
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				it->second.flush();
+				return Unit{};
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@size") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
-		        auto &fs = it->second;
-		        auto cur = fs.tellg();
-		        fs.seekg(0, ios::end);
-		        auto size = fs.tellg();
-		        fs.seekg(cur);
-		        return static_cast<long long>(size);
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+				auto &fs = it->second;
+				auto cur = fs.tellg();
+				fs.seekg(0, ios::end);
+				auto size = fs.tellg();
+				fs.seekg(cur);
+				return static_cast<long long>(size);
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}else if (part == "@get") {
-		    try {
-		        const auto file_name = get<string>(expr(args[0]));
-		        const auto data_type = get<string>(expr(args[1]));
-		        
-		        auto it = file_handle.find(file_name);
-		        if (it == file_handle.end() || !it->second.is_open())
-		            throw runtime_error("file not open");
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				const auto data_type = get<string>(expr(args[1]));
+				
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
 
-		        auto &fs = it->second;
+				auto &fs = it->second;
 
-		        if (data_type == "Int") {
-		            long long val;
-		            fs >> val;
-		            if(fs.fail()) throw TypeError{};
-		            return val;
-		        } 
-		        else if (data_type == "Real") {
-		            double val;
-		            fs >> val;
-		            if(fs.fail()) throw TypeError{};
-		            return val;
-		        } 
-		        else if (data_type == "String") {
-		            string val;
-		            fs >> val;
-		            return val;
-		        } 
-		        else {
-		            throw TypeError{};
-		        }
-		    } catch (const exception &) {
-		        throw TypeError{};
-		    }
+				if (data_type == "Int") {
+					long long val;
+					fs >> val;
+					if(fs.fail()) throw TypeError{};
+					return val;
+				} 
+				else if (data_type == "Real") {
+					double val;
+					fs >> val;
+					if(fs.fail()) throw TypeError{};
+					return val;
+				} 
+				else if (data_type == "String") {
+					string val;
+					fs >> val;
+					return val;
+				} 
+				else {
+					throw TypeError{};
+				}
+			} catch (const exception &) {
+				throw TypeError{};
+			}
+		}else if(part == "@put") {
+			try {
+				const auto file_name = get<string>(expr(args[0]));
+				const auto data = visit(printVisitor{},expr(args[1]));
+				
+				auto it = file_handle.find(file_name);
+				if (it == file_handle.end() || !it->second.is_open())
+					throw runtime_error("file not open");
+
+				auto &fs = it->second;
+				fs << data;
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}
 		else {
 			return Unit{};
