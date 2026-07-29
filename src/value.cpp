@@ -15,9 +15,9 @@ class Type;
 class Unit {};
 
 struct Func {
-	std::vector<std::string> arg_type;
-	std::vector<std::string> ret_type;
-	bool pure;
+	//std::vector<std::string> arg_type;
+	//std::vector<std::string> ret_type;
+	bool is_volatile = false;
 	std::string arg,
 		body;
 };

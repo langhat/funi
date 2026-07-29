@@ -167,7 +167,7 @@ public:
 	}
 	
 	std::string operator()(const Func& val) const {
-		return "("+val.arg+" -> ( "+val.body+") )";
+		return std::string(val.is_volatile?"volatile":"") +"("+val.arg+" -> ( "+val.body+") )";
 	}
 
 	// 10. Unit（空类型）

@@ -1,0 +1,10 @@
+// web.fi
+web = {
+    apply_app: routes_obj -> port -> @apply_app(routes_obj, port),
+
+    // 创建单个路由条目
+    route: path -> handler -> {
+        _0: path,
+        _1: handler
+    }
+}

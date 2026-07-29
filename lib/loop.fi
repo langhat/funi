@@ -1,0 +1,5 @@
+loop = {
+	unordered: {unordered: unit},
+	reg: k -> {reg: k},
+	result: k -> {for_result_spec: k},
+}

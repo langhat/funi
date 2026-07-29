@@ -229,7 +229,14 @@ public:
 		using namespace std;
 
 		if(code.empty()) return Unit {};
-		if(cache.find(code) != cache.end())return cache.find(code)->second;
+		if(cache.find(code) != cache.end()){
+			// cout << "Cache: ";
+			// for (auto &ec: code) {
+			// 	cout << ec << " ";
+			// }
+			// cout << endl;
+			return cache.find(code)->second;
+		}
 
 		vector<string> part[3];
 		int post=0;
@@ -481,7 +488,7 @@ public:
 				else if(part[1].size()==1){
 					//special
 					if(part[1][0][0] == '@' && part[1][0] != "@"){
-						return cache[code] = specCall(part[1][0], a_s);
+						return specCall(part[1][0], a_s);
 					}else if(part[1][0]=="__out"){
 						GetArgs
 						auto arg=expr(args[0]);
@@ -604,85 +611,257 @@ public:
 						return copied_val;
 					}else if(part[1][0] == "for"){
 						GetArgs
-
-						vector<string> object;
-						auto result = expr(args[0]);
-						auto obj = expr(args[1]);
-						auto list = get<Object *>(obj); //list->properties["begin"]
-
-						value begin = list->properties["begin"];
-						split(match(string(" ")+get<Func>(begin).body+" ",
-								" "+get<Func>(begin).arg+" ",
-								visit(loadVisitor{}, obj))
-							,object);
-						begin = expr(object);
-						object.clear();
-
-						value end = list->properties["end"];
-						split(match(string(" ")+get<Func>(end).body+" ",
-								" "+get<Func>(end).arg+" ",
-								visit(loadVisitor{}, obj))
-							,object);
-						end = expr(object);
-						object.clear();
-
-						auto func = expr(args[2]);
-
-
-						while(get<bool>(visit(notEqualVisitor{}, begin, end))) {
-							value item;
-							//calc
-							if(begin.index() == 0) {
-								item = get<long long>(begin);
-							}else if(begin.index() == 6) {
-								if(get<Object *>(begin)->properties.find("get") !=
-									get<Object *>(begin)->properties.end()){
-
-									auto getf = get<Object *>(begin)->properties["get"];
-									split(match(string(" ")+get<Func>(getf).body+" ",
-											" "+get<Func>(getf).arg+" ",
-											visit(loadVisitor{}, begin))
-										,object);
-									item = expr(object);
-									object.clear();
+						// string
+						try{
+							auto val = expr(args[0]);
+							try {
+								auto str = get<string>(val);
+								auto fnc = get<Func>(expr(args[1]));
+								bool is_unordered = false, reg_on = false;
+								value reg = Unit{};
+								if(args.size() >= 4) {
+									{
+										const Object *flag = get<Object *>(expr(args[2]));
+										if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+											is_unordered = true;
+										}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+											reg_on = true;
+											reg = it->second;
+										}else {
+											throw TypeError{};
+										}
+									}
+									{
+										const Object *flag = get<Object *>(expr(args[3]));
+										if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+											is_unordered = true;
+										}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+											reg_on = true;
+											reg = it->second;
+										}else {
+											throw TypeError{};
+										}
+									}
+								}else if(args.size() >= 3){
+									const Object *flag = get<Object *>(expr(args[2]));
+									if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+										is_unordered = true;
+									}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+										reg_on = true;
+										reg = it->second;
+									}else {
+										throw TypeError{};
+									}
 								}
-							}else{
-								throw TypeError{};
-							}
+								if (reg_on) {
+									//忽略unordered
+									for (const auto &ec: str) {
+										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(\"" + string(1, ec) + "\"," + 
+											visit(loadVisitor{}, reg) +")");
+										try {
+											const auto &prop = get<Object *>(res)->properties;
+											if(auto it = prop.find("for_result_spec");
+												it != prop.end()){
+												return it->second;
+											}
+										}catch(const exception &) {}
+										reg = res;
+									}
+									return reg;
+								} else {
+									if (is_unordered) {
 
-							split(match(string(" ")+get<Func>(func).body+" ",
-									" "+get<Func>(func).arg+" ",
-									visit(loadVisitor{},result))
-								,object);
-							result = expr(object);
-							object.clear();
-
-							split(match(string(" ")+get<Func>(result).body+" ",
-									" "+get<Func>(result).arg+" ",
-									visit(loadVisitor{},item))
-								,object);
-							result = expr(object);
-							object.clear();
-
-							//step
-							if(begin.index() == 0) {
-								begin = get<long long>(begin) + 1;
-							}else if(begin.index() == 6) {
-								if(get<Object *>(begin)->properties.find("next") !=
-									get<Object *>(begin)->properties.end()){
-									auto nextf = get<Object *>(begin)->properties["next"];
-									split(match(string(" ")+get<Func>(nextf).body+" ",
-											" "+get<Func>(nextf).arg+" ",
-											visit(loadVisitor{}, begin))
-										,object);
-									begin = expr(object);
-									object.clear();
+									}else for (const auto &ec: str) {
+										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(\"" + string(1, ec) + "\")");
+										try {
+											const auto &prop = get<Object *>(res)->properties;
+											if(auto it = prop.find("for_result_spec");
+												it != prop.end()){
+												return it->second;
+											}
+										}catch(const exception &) {}
+									}
+									return Unit{};
 								}
-							}else{
-								throw TypeError{};
-							}
+							}catch(const exception &){}
+
+							throw TypeError{};
+						}catch(const exception &){
+							throw TypeError{};
 						}
-						return cache[code] = result;
+
+						// normal array
+						try{
+							auto val = expr(args[0]);
+							try {
+								const auto &obj = get<Object *>(val)->properties;
+
+								if (obj.find("item") != obj.end() || obj.find("begin") != obj.end()) throw TypeError{};
+								//check
+
+								auto fnc = get<Func>(expr(args[1]));
+								bool is_unordered = false, reg_on = false;
+								value reg = Unit{};
+								if(args.size() >= 4) {
+									{
+										const Object *flag = get<Object *>(expr(args[2]));
+										if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+											is_unordered = true;
+										}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+											reg_on = true;
+											reg = it->second;
+										}else {
+											throw TypeError{};
+										}
+									}
+									{
+										const Object *flag = get<Object *>(expr(args[3]));
+										if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+											is_unordered = true;
+										}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+											reg_on = true;
+											reg = it->second;
+										}else {
+											throw TypeError{};
+										}
+									}
+								}else if(args.size() >= 3){
+									const Object *flag = get<Object *>(expr(args[2]));
+									if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+										is_unordered = true;
+									}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+										reg_on = true;
+										reg = it->second;
+									}else {
+										throw TypeError{};
+									}
+								}
+								if (reg_on) {
+									//忽略unordered
+									for (const auto &[key, ec]: obj) {
+										if (key.size() == 0) continue;
+										if (key[0] != '_' || [](string &&s){
+											for (auto &c: s) if(c < '0' || c > '9') return true;
+											return false;
+										}(string(key.c_str()+1))) continue;
+
+										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(\"" + visit(loadVisitor{}, ec) + "\"," + 
+											visit(loadVisitor{}, reg) +")");
+										try {
+											const auto &prop = get<Object *>(res)->properties;
+											if(auto it = prop.find("for_result_spec");
+												it != prop.end()){
+												return it->second;
+											}
+										}catch(const exception &) {}
+										reg = res;
+									}
+									return reg;
+								} else {
+									if (is_unordered) {
+
+									}else for (const auto &[key, ec]: obj) {
+										if (key.size() == 0) continue;
+										if (key[0] != '_' || [](string &&s){
+											for (auto &c: s) if(c < '0' || c > '9') return true;
+											return false;
+										}(string(key.c_str()+1))) continue;
+
+										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(" + visit(loadVisitor{}, ec) + ")");
+										try {
+											const auto &prop = get<Object *>(res)->properties;
+											if(auto it = prop.find("for_result_spec");
+												it != prop.end()){
+												return it->second;
+											}
+										}catch(const exception &) {}
+									}
+									return Unit{};
+								}
+							}catch(const exception &){}
+
+							throw TypeError{};
+						}catch(const exception &){
+							throw TypeError{};
+						}
+						// vector<string> object;
+						// auto result = expr(args[0]);
+						// auto obj = expr(args[1]);
+						// auto list = get<Object *>(obj); //list->properties["begin"]
+
+						// value begin = list->properties["begin"];
+						// split(match(string(" ")+get<Func>(begin).body+" ",
+						// 		" "+get<Func>(begin).arg+" ",
+						// 		visit(loadVisitor{}, obj))
+						// 	,object);
+						// begin = expr(object);
+						// object.clear();
+
+						// value end = list->properties["end"];
+						// split(match(string(" ")+get<Func>(end).body+" ",
+						// 		" "+get<Func>(end).arg+" ",
+						// 		visit(loadVisitor{}, obj))
+						// 	,object);
+						// end = expr(object);
+						// object.clear();
+
+						// auto func = expr(args[2]);
+
+
+						// while(get<bool>(visit(notEqualVisitor{}, begin, end))) {
+						// 	value item;
+						// 	//calc
+						// 	if(begin.index() == 0) {
+						// 		item = get<long long>(begin);
+						// 	}else if(begin.index() == 6) {
+						// 		if(get<Object *>(begin)->properties.find("get") !=
+						// 			get<Object *>(begin)->properties.end()){
+
+						// 			auto getf = get<Object *>(begin)->properties["get"];
+						// 			split(match(string(" ")+get<Func>(getf).body+" ",
+						// 					" "+get<Func>(getf).arg+" ",
+						// 					visit(loadVisitor{}, begin))
+						// 				,object);
+						// 			item = expr(object);
+						// 			object.clear();
+						// 		}
+						// 	}else{
+						// 		throw TypeError{};
+						// 	}
+
+						// 	split(match(string(" ")+get<Func>(func).body+" ",
+						// 			" "+get<Func>(func).arg+" ",
+						// 			visit(loadVisitor{},result))
+						// 		,object);
+						// 	result = expr(object);
+						// 	object.clear();
+
+						// 	split(match(string(" ")+get<Func>(result).body+" ",
+						// 			" "+get<Func>(result).arg+" ",
+						// 			visit(loadVisitor{},item))
+						// 		,object);
+						// 	result = expr(object);
+						// 	object.clear();
+
+						// 	//step
+						// 	if(begin.index() == 0) {
+						// 		begin = get<long long>(begin) + 1;
+						// 	}else if(begin.index() == 6) {
+						// 		if(get<Object *>(begin)->properties.find("next") !=
+						// 			get<Object *>(begin)->properties.end()){
+						// 			auto nextf = get<Object *>(begin)->properties["next"];
+						// 			split(match(string(" ")+get<Func>(nextf).body+" ",
+						// 					" "+get<Func>(nextf).arg+" ",
+						// 					visit(loadVisitor{}, begin))
+						// 				,object);
+						// 			begin = expr(object);
+						// 			object.clear();
+						// 		}
+						// 	}else{
+						// 		throw TypeError{};
+						// 	}
+						// }
+						// return cache[code] = result;
 					}else if(part[1][0] == "match") {
 						GetArgs
 						auto val=visit(loadVisitor{}, expr(args[0]));
@@ -716,19 +895,25 @@ public:
 					vector<string> object;
 					if(args.empty()) {
 						split(match(string(" ")+get<Func>(func).body+" ", " "+get<Func>(func).arg+" ", "unit"),object);
-						return cache[code] = expr(object);
+						const auto &tmp = expr(object);
+						if (!get<Func>(func).is_volatile)
+							cache[code] = tmp;
+						return tmp;
 					}
 
+					bool is_volatile = false;
 					for(auto post=0;post<args.size();post++){
 						auto arg=visit(loadVisitor{},expr(args[post]));
 						split(match(string(" ")+get<Func>(func).body+" ",
 							" " + get<Func>(func).arg + " ",
 							"( " + arg + " )"),
 							object);
+						is_volatile = is_volatile || get<Func>(func).is_volatile;
 						func = expr(object);
 					}
-
-					return cache[code] = func;
+					if (!is_volatile)
+						cache[code] = func;
+					return func;
 				}specialCallEnd:;
 			}
 		}
@@ -952,7 +1137,7 @@ public:
 				temp.erase(temp.size()-1);
 				vector<string> tv;
 				split(temp,tv);
-				return cache[code] = expr(tv);
+				return expr(tv);
 			}else if(fpb){
 				// Object literal
 				string temp=code[0].c_str()+1;
@@ -1379,10 +1564,16 @@ public:
 			} catch (const exception &) {
 				throw TypeError{};
 			}
+		}else if(part == "@volatile") {
+			try {
+				auto func = get<Func>(expr(args[0]));
+				func.is_volatile = true;
+				return func;
+			} catch (const exception &) {
+				throw TypeError{};
+			}
 		}
-		else {
-			return Unit{};
-		}
+		return Unit{};
 	}
 	value expr(const std::string &code) {
 		std::vector<std::string> object;

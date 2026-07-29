@@ -1,0 +1,34 @@
+// io.fi
+
+io = {
+    // ----- 句柄管理 -----
+    open: volatile(filename -> @open(filename)),
+
+    close: volatile(filename -> @close(filename)),
+
+    is_open: volatile(filename -> @is_open(filename)),
+
+    // ----- 读取操作 -----
+    read_all: volatile(filename -> @read_all(filename)),
+
+    read_line: volatile(filename -> @read_line(filename)),
+
+    get: filename -> volatile(type_name -> @get(filename, type_name)),
+
+    tellg: filename -> volatile(@tellg(filename)),
+
+    seekg: filename -> volatile(pos -> @seekg(filename, pos)),
+
+    eof: filename -> volatile(@eof(filename)),
+
+    size: filename -> volatile(@size(filename)),
+
+    // ----- 写入操作 -----
+    write: filename -> data -> volatile(@write(filename, data)),
+
+    append: filename -> data -> volatile(@append(filename, data)),
+
+    put: filename -> value -> volatile(@put(filename, value)),
+
+    flush: filename -> volatile(@flush(filename)),
+}
