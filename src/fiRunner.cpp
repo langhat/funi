@@ -687,7 +687,7 @@ public:
 
 							throw TypeError{};
 						}catch(const exception &){
-							throw TypeError{};
+							//throw TypeError{};
 						}
 
 						// normal array
@@ -745,7 +745,7 @@ public:
 											return false;
 										}(string(key.c_str()+1))) continue;
 
-										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(\"" + visit(loadVisitor{}, ec) + "\"," + 
+										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(" + visit(loadVisitor{}, ec) + "," + 
 											visit(loadVisitor{}, reg) +")");
 										try {
 											const auto &prop = get<Object *>(res)->properties;
@@ -782,7 +782,112 @@ public:
 
 							throw TypeError{};
 						}catch(const exception &){
+							// throw TypeError{};
+						}
+
+						// esp array
+						try{
+							auto val = expr(args[0]);
+							try {
+								const auto &obj = get<Object *>(val)->properties;
+
+								if (obj.find("item") == obj.end() || obj.find("begin") == obj.end() || obj.find("end") == obj.end()) throw TypeError{};
+								//check
+
+								auto fnc = get<Func>(expr(args[1]));
+								bool is_unordered = false, reg_on = false;
+								value reg = Unit{};
+								if(args.size() >= 4) {
+									{
+										const Object *flag = get<Object *>(expr(args[2]));
+										if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+											is_unordered = true;
+										}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+											reg_on = true;
+											reg = it->second;
+										}else {
+											throw TypeError{};
+										}
+									}
+									{
+										const Object *flag = get<Object *>(expr(args[3]));
+										if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+											is_unordered = true;
+										}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+											reg_on = true;
+											reg = it->second;
+										}else {
+											throw TypeError{};
+										}
+									}
+								}else if(args.size() >= 3){
+									const Object *flag = get<Object *>(expr(args[2]));
+									if(auto it = flag->properties.find("unordered"); it != flag->properties.end()) {
+										is_unordered = true;
+									}else if(auto it = flag->properties.find("reg"); it != flag->properties.end()) {
+										reg_on = true;
+										reg = it->second;
+									}else {
+										throw TypeError{};
+									}
+								}
+								if (reg_on) {
+									//忽略unordered
+									long long i =
+										get<long long>(expr("(" + (visit(loadVisitor{}, obj.find("begin")->second) +
+										")(" + visit(loadVisitor{}, val) + ")"))),
+										e =
+										get<long long>(expr("(" + (visit(loadVisitor{}, obj.find("end")->second) +
+										")(" + visit(loadVisitor{}, val) + ")")));
+									for (;i < e;i++) {
+										auto ec =
+											expr("(" + (visit(loadVisitor{}, obj.find("item")->second) +
+											")(" + to_string(i) + ")"));
+
+										auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(" + visit(loadVisitor{}, ec) + "," + 
+											visit(loadVisitor{}, reg) +")");
+										try {
+											const auto &prop = get<Object *>(res)->properties;
+											if(auto it = prop.find("for_result_spec");
+												it != prop.end()){
+												return it->second;
+											}
+										}catch(const exception &) {}
+										reg = res;
+									}
+									return reg;
+								} else {
+									if (is_unordered) {
+
+									}else {
+										long long i =
+											get<long long>(expr("(" + (visit(loadVisitor{}, obj.find("begin")->second) +
+											")(" + visit(loadVisitor{}, val) + ")"))),
+										e =
+											get<long long>(expr("(" + (visit(loadVisitor{}, obj.find("end")->second) +
+											")(" + visit(loadVisitor{}, val) + ")")));
+										for (;i < e;i++) {
+											auto ec =
+												expr("(" + (visit(loadVisitor{}, obj.find("item")->second) +
+												")(" + to_string(i) + ")"));
+
+											auto res = expr("(" + visit(loadVisitor{}, value(fnc)) + ")(" + visit(loadVisitor{}, ec) + ")");
+											try {
+												const auto &prop = get<Object *>(res)->properties;
+												if(auto it = prop.find("for_result_spec");
+													it != prop.end()){
+													return it->second;
+												}
+											}catch(const exception &) {}
+										}
+									}
+									return Unit{};
+								}
+							}catch(const exception &){}
+
 							throw TypeError{};
+						}catch(const exception &){
+							// throw TypeError{};
 						}
 						// vector<string> object;
 						// auto result = expr(args[0]);

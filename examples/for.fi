@@ -1,0 +1,4 @@
+@("loop.fi")
+
+for([1, 2, 3, 4, 3, 2, 1], __out)
+__out(for([1, 2, 3, 4, 3, 2, 1], item -> reg -> item + reg, loop.reg(0)))

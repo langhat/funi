@@ -1,0 +1,6 @@
+vo = volatile(k -> __out(k))
+co = k -> __out(k)
+vo2 = __out
+
+vo(1),vo(1),co(2),co(2),vo2(3),vo2(3)
+// 1;1;2;3;3
