@@ -26,10 +26,10 @@ const std::string pathC=
 
 std::string default_funi_config 
 =R"deffc({
-	path: {
-		lib: "lib/",
-		pwd: ""
-	},
+	path: [
+		"lib/",
+		"",
+	],
 	init: _ -> @("builtin_func.fi")
 })deffc";
 std::string fi_gitignore
@@ -49,12 +49,9 @@ std::string project_fi
 	version: 1,  // unreadable version
 	version_readable: "0.1.0",  // readable version
 	main: "src/main.fi",    // main file
-	test: { // test files
-		// test information: test file path
-	},
-	depend: {   //depend list
-		// package name: version number
-	}
+	depend: [   //depend list
+		// {name:, url:}
+	]
 })project_fi";
 
 class fiMain{

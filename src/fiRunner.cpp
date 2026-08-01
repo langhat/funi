@@ -554,6 +554,7 @@ public:
 							}else {
 								cerr << "[Warning] Include \'" << filename << "\' for twice\n";
 								ninctw = false;
+								return Unit{};
 							}
 							//cerr << paths[index] << filename << endl;
 						}

@@ -26,13 +26,12 @@ project/
 	version: 1145,	// unreadable version
 	version_readable: "1.4.5",	// readable version
 	main: "src/main.fi",	// main file
-	test: {	// test files
-		"test `a`": "src/a_test.fi"	// test information: test file path
-	},
-	depend: {	//depend list
-		libA: 145, // package name: version number
-		libB: 514
-	}
+	depend: [	//depend list
+		{
+			name: "pacA",
+			url: "url"
+		}
+	]
 }
 ```
 
@@ -43,7 +42,7 @@ eg.
 @("a.fi")
 @("math.fi")
 
-main = a -> b -> A.foo_a(a ..Int, b ..Real)
+main = a -> b -> a.foo(a ..Int, b ..Real)
 ```
 
 ### test file的编写
@@ -52,9 +51,7 @@ eg.
 ```funi
 @("a.fi")
 
-test = {
-	"test part 1": A.foo_a(5, 1.0) == A.foo_a(1, 5.0) // need true
-}
+test(["test part 1",a.foo(5, 1.0) == a.foo(1, 5.0)])
 ```
 
 ### 模块的编写
@@ -62,8 +59,8 @@ test = {
 eg.
 ```funi
 // a.fi
-A = {
-	foo_a: a -> b -> a ..Int + b ..Real
+a = {
+	foo: a -> b -> a ..Int + b ..Real
 }
 ```
 
