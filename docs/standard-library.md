@@ -6,10 +6,14 @@ funi 提供了一些内置的标准库，可以通过 `@()` 导入使用。
 
 ```
 lib/
-- math.fi
 - builtin_func.fi # default included
 - functional.fi
+- io.fi
 - logic.fi
+- loop.fi
+- math.fi
+- ranges.fi
+- web.fi
 ```
 
 ### math.fi
@@ -165,6 +169,127 @@ functional.apply(add1)(10)  # 11
 
 ### logic.fi
 一些逻辑运算
+
+### io.fi
+
+`io.fi` 提供了文件输入输出功能，包括句柄管理、读取操作和写入操作。
+
+#### 一、句柄管理
+
+| 函数 | 原型 | 功能 | 参数说明 | 返回值 |
+|------|------|------|----------|--------|
+| open | `volatile(filename -> @open(filename))` | 打开文件 | filename: Str（文件路径） | 文件句柄 |
+| close | `volatile(filename -> @close(filename))` | 关闭文件 | filename: Str（文件路径） | Unit |
+| is_open | `volatile(filename -> @is_open(filename))` | 检查文件是否已打开 | filename: Str（文件路径） | Bool |
+
+#### 二、读取操作
+
+| 函数 | 原型 | 功能 | 参数说明 | 返回值 |
+|------|------|------|----------|--------|
+| read_all | `volatile(filename -> @read_all(filename))` | 读取文件全部内容 | filename: Str（文件路径） | Str |
+| read_line | `volatile(filename -> @read_line(filename))` | 读取文件一行 | filename: Str（文件路径） | Str |
+| get | `filename -> volatile(type_name -> @get(filename, type_name))` | 按类型读取值 | filename: Str；type_name: Str（类型名） | 指定类型值 |
+| tellg | `filename -> volatile(@tellg(filename))` | 获取读取位置 | filename: Str | Int |
+| seekg | `filename -> volatile(pos -> @seekg(filename, pos))` | 设置读取位置 | filename: Str；pos: Int | Unit |
+| eof | `filename -> volatile(@eof(filename))` | 检查是否到达文件末尾 | filename: Str | Bool |
+| size | `filename -> volatile(@size(filename))` | 获取文件大小 | filename: Str | Int |
+
+#### 三、写入操作
+
+| 函数 | 原型 | 功能 | 参数说明 | 返回值 |
+|------|------|------|----------|--------|
+| write | `filename -> data -> volatile(@write(filename, data))` | 写入数据到文件 | filename: Str；data: 任意 | Unit |
+| append | `filename -> data -> volatile(@append(filename, data))` | 追加数据到文件 | filename: Str；data: 任意 | Unit |
+| put | `filename -> value -> volatile(@put(filename, value))` | 按类型写入值 | filename: Str；value: 任意 | Unit |
+| flush | `filename -> volatile(@flush(filename))` | 刷新文件缓冲区 | filename: Str | Unit |
+
+#### 示例
+
+```funi
+@("io.fi")
+
+io.write(io.open("output.txt"), "Hello, World!")
+
+content = io.read_all("output.txt")
+__out(content)
+
+io.open("data.txt")
+io.read_line("data.txt")
+io.close("data.txt")
+```
+
+### loop.fi
+
+`loop.fi` 提供了循环控制的辅助工具，用于配合 `for` 表达式实现累加、遍历等功能。
+
+| 函数 | 原型 | 功能 | 参数说明 | 返回值 |
+|------|------|------|----------|--------|
+| unordered | `{unordered: unit}` | 无序遍历标记，for 循环不保证顺序 | 无 | Object |
+| reg | `k -> {reg: k}` | 注册累加器初始值 | k: 初始值 | Object |
+| result | `k -> {for_result_spec: k}` | 指定循环结果值 | k: 结果值 | Object |
+
+#### 示例
+
+```funi
+@("loop.fi")
+
+A = {0, 8, 10, 11}
+
+for(A, item -> loop.result(item) ? item == 10 : __out(item))
+
+for(A, item -> reg -> item + reg, loop.reg(0))
+
+for(A, item -> reg -> item * reg, loop.reg(1))
+
+N = {item: index -> index}
+my_range = b -> e -> {begin: _ -> b, end: _ -> e}
+for(N with my_range(2, 5), __out)
+```
+
+### web.fi
+
+`web.fi` 提供了简单的 Web 服务器功能，支持路由注册和应用启动。
+
+| 函数 | 原型 | 功能 | 参数说明 | 返回值 |
+|------|------|------|----------|--------|
+| apply_app | `routes_obj -> port -> @apply_app(routes_obj, port)` | 启动 Web 应用 | routes_obj: 路由对象；port: Int（端口号） | Unit |
+| route | `path -> handler -> {_0: path, _1: handler}` | 创建单个路由条目 | path: Str（路径）；handler: 函数 | Object |
+
+### ranges.fi
+
+`ranges.fi` 提供了范围操作工具，用于为Array添加范围限制、转换和切片功能。
+
+| 函数 | 原型 | 功能 | 参数说明 | 返回值 |
+|------|------|------|----------|--------|
+| take | `e -> {begin: _ -> 0, end: _ -> e}` | 创建从 0 开始到 `e` 结束的范围 | e: Int（结束值） | Object |
+| trans | `ori -> proc -> {item: index -> proc(ori[index])}` | 对Array进行转换 | ori: 原始Array；proc: 转换函数 | Object |
+| slice | `ori -> ib -> ie -> {item: index -> ori[index + ib], begin: _ -> 0, end: _ -> ie - ib}` | 对遍历器进行切片 | ori: 原始遍历器；ib: Int（起始偏移）；ie: Int（结束偏移） | Object |
+| range | `b -> e -> {begin: _ -> b, end: _ -> e}` | 创建从 `b` 到 `e` 的范围 | b: Int（起始值）；e: Int（结束值） | Object |
+
+#### 示例
+
+```funi
+@("ranges.fi")
+
+N = {item: k -> k ..Int}
+
+# 取前 5 个自然数
+for(N with ranges.take(5), __out)
+# stdout: 0, 1, 2, 3, 4
+
+# 取 2 到 5 的范围
+for(N with ranges.range(2,5), __out)
+# stdout: 2, 3, 4
+
+# 对元素进行转换
+for(ranges.trans(N with ranges.take(3))(x -> x * 10), __out)
+# stdout: 0, 10, 20
+
+# 切片：从索引 2 开始取 3 个元素
+for(ranges.slice(N)(2,5), __out)
+# stdout: 2, 3, 4
+```
+
 
 ## 创建自定义库
 

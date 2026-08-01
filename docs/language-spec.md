@@ -74,6 +74,10 @@ a = [0, 3, 6, 7]
 N = { // 自然数
     item: k -> k ..Int
 }
+NwithRange = N with { // better name: n_range
+    begin: _ -> 5
+    end: _ -> 8
+}
 b = {
     _0: 9,
     _9: 1,
@@ -178,6 +182,36 @@ point.x          // 获取属性
 point.distance(point)  // 调用方法
 ```
 
+### with 表达式
+
+`with` 是对象合并运算符，将右侧对象的属性合并到左侧对象中，右侧属性会覆盖左侧同名属性。
+
+```funi
+obj1 with obj2
+```
+
+示例：
+
+```funi
+base = {x: 1, y: 2}
+extended = base with {z: 3}
+// extended = {x: 1, y: 2, z: 3}
+
+overridden = base with {x: 10}
+// overridden = {x: 10, y: 2}
+```
+
+`with` 常用于为遍历器（如自然数 `N`）添加范围限制：
+
+```funi
+N = {item: k -> k ..Int}
+NwithRange = N with {
+    begin: _ -> 5,
+    end: _ -> 8
+}
+// NwithRange[5]..NwithRange[8] 有效
+```
+
 ### 类型转换 / 断言
 
 ```funi
@@ -190,6 +224,27 @@ expression .. Type // 如果不符的话TypeError
 ```funi
 x = 3.14 as Int   // 3
 y = 5 as Real     // 5.0
+```
+
+### for表达式
+详见[here](./api-reference.md)
+eg.
+```funi
+@("loop.fi")
+A = {0, 8, 10, 11}
+for(A, item -> loop.result(item) ? item == 10 : __out(item)) //10
+// stdout:
+// 0
+// 8
+for(A, item -> reg -> item + reg, loop.reg(0)) //29
+for(A, item -> reg -> item * reg, loop.reg(1)) //0
+N = {item: index -> index}
+my_range = b -> e -> {begin: _ -> b, end: _ -> e}
+for(N with my_range(2, 5), __out)
+// stdout:
+// 2
+// 3
+// 4
 ```
 
 ## 语句
@@ -275,11 +330,11 @@ new(object)
 
 ### for
 
-循环：
+循环, 见上文
 
-```funi
-for(init, iterable, func)
-```
+### volatile
+
+使得一个函数变得volatile, 防止被优化
 
 ## 类型系统
 

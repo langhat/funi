@@ -348,6 +348,39 @@ public:
 			string a_s;
 			bool nohap=1;
 			for(const auto &ec:code){
+				if(nohap&&(ec == "with")){
+					a_s=ec;
+					post++;
+					nohap=0;
+				}else{
+					part[post].push_back(ec);
+				}
+			}
+			if(a_s.empty()){}
+			else if(a_s=="with"){
+				try{
+					auto rv1 = expr(part[0]);
+					auto v2 = get<Object *>(expr(part[1]));
+					auto v1 = get<Object *>(expr(visit(loadVisitor{}, rv1)));
+					for(const auto &[key, val]: v2->properties) {
+						v1->properties[key] = val;
+					}
+					return v1;
+				}catch(const exception &){
+					throw TypeError{};
+				}
+			}
+			else{
+				throw NotExistError{};
+			}
+		}
+		part[0].clear();part[1].clear();part[2].clear();
+		post=0;
+
+		{
+			string a_s;
+			bool nohap=1;
+			for(const auto &ec:code){
 				if(nohap&&(ec == ">=" ||
 					ec == "<=" ||
 					ec == "==" ||
@@ -555,60 +588,60 @@ public:
 						}
 
 						value original_val = expr(args[0]);
-						
+						return expr(visit(loadVisitor{}, original_val));
 
-						value copied_val = std::visit([this](auto&& arg) -> value {
-							using Type = std::decay_t<decltype(arg)>;
+						// value copied_val = std::visit([this](auto&& arg) -> value {
+						// 	using Type = std::decay_t<decltype(arg)>;
 
-							if constexpr (
-								std::is_same_v<Type, long long>    || // Int
-								std::is_same_v<Type, long double>  || // Real
-								std::is_same_v<Type, bool>         || // Bool
-								std::is_same_v<Type, std::string>  || // Str
-								std::is_same_v<Type, Func>         || // Func
-								std::is_same_v<Type, Unit>            // Unit
-							) {
-								return arg;
-							}
+						// 	if constexpr (
+						// 		std::is_same_v<Type, long long>    || // Int
+						// 		std::is_same_v<Type, long double>  || // Real
+						// 		std::is_same_v<Type, bool>         || // Bool
+						// 		std::is_same_v<Type, std::string>  || // Str
+						// 		std::is_same_v<Type, Func>         || // Func
+						// 		std::is_same_v<Type, Unit>            // Unit
+						// 	) {
+						// 		return arg;
+						// 	}
 
-							else if constexpr (std::is_same_v<Type, Object*>) {
-								if (arg == nullptr) return nullptr;
+						// 	else if constexpr (std::is_same_v<Type, Object*>) {
+						// 		if (arg == nullptr) return nullptr;
 
-								if(arg->properties.find("new") !=
-									arg->properties.end()) {
+						// 		if(arg->properties.find("new") !=
+						// 			arg->properties.end()) {
 									
-									auto func=arg->properties.find("new")->second;
+						// 			auto func=arg->properties.find("new")->second;
 
-									vector<string> object;
-									split(match(string(" ")+get<Func>(func).body+" ",
-											" "+get<Func>(func).arg+" ",
-											"unit")
-										,object);
-									return expr(object);
-								}
+						// 			vector<string> object;
+						// 			split(match(string(" ")+get<Func>(func).body+" ",
+						// 					" "+get<Func>(func).arg+" ",
+						// 					"unit")
+						// 				,object);
+						// 			return expr(object);
+						// 		}
 
-								Object* new_obj = new Object();
+						// 		Object* new_obj = new Object();
 
-								function<value(value&&)> lbd;
-								lbd = [&lbd](auto&& v) -> value {
-									return v;//std::visit(lbd, v);
-									//object light copy: WARN TODO
-								};
+						// 		function<value(value&&)> lbd;
+						// 		lbd = [&lbd](auto&& v) -> value {
+						// 			return v;//std::visit(lbd, v);
+						// 			//object light copy: WARN TODO
+						// 		};
 
-								for (const auto& [key, val] : arg->properties) {
-									new_obj->properties[key] = std::visit(lbd, val);
-								}
+						// 		for (const auto& [key, val] : arg->properties) {
+						// 			new_obj->properties[key] = std::visit(lbd, val);
+						// 		}
 
-								rubbish.insert(new value(new_obj));
-								return new_obj;
-							}
+						// 		rubbish.insert(new value(new_obj));
+						// 		return new_obj;
+						// 	}
 
-							else {
-								throw TypeError{};
-							}
-						}, original_val);
+						// 	else {
+						// 		throw TypeError{};
+						// 	}
+						// }, original_val);
 
-						return copied_val;
+						// return copied_val;
 					}else if(part[1][0] == "for"){
 						GetArgs
 						// string

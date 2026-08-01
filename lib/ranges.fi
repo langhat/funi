@@ -1,0 +1,18 @@
+ranges = {
+	take: e -> {
+		begin: _ -> 0,
+		end: _ -> e,
+	},
+	trans: ori -> proc -> { // notice: range-less
+		item: index -> proc(ori[index]),
+	},
+	slice: ori -> ib -> ie {
+		item: index -> ori[index + ib],
+		begin: _ -> 0,
+		end: _ -> ie - ib,
+	},
+	range: b -> e -> {
+		begin: _ -> b,
+		end: _ -> e,
+	},
+}

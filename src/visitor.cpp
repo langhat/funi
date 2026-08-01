@@ -110,7 +110,9 @@ public:
 	}
 	
 	void operator()(const Func &val) const {
+		if(val.is_volatile) std::cout << "volatile(";
 		std::cout << val.arg << " -> " << val.body;
+		if(val.is_volatile) std::cout << ")";
 	}
 
 	// 10. Unit（空类型）

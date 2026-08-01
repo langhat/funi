@@ -2,7 +2,7 @@
 
 ## 内置函数
 
-### __out
+### \_\_out
 
 **语法**：`__out(value)`
 
@@ -117,22 +117,35 @@ instance = new(Class)
 
 ### for
 
-**语法**：`for(init, iterable, func)`
+**语法**：`for(iterable, func[, ...])`
 
 **描述**：循环遍历可迭代对象
 
 **参数**：
-- `init` - 初始值
-- `iterable` - 可迭代对象（必须有 `begin` 和 `end` 属性）
+- `iterable` - 初始值
 - `func` - 回调函数
+- `...` - 补充说明
 
-**返回值**：最后一次调用 func 的结果
+**返回值**：见示例
 
 **示例**：
 
 ```funi
-arr = makeArray({1, 2, 3})
-result = for(0, arr, i -> i)
+@("loop.fi")
+A = {0, 8, 10, 11}
+for(A, item -> loop.result(item) ? item == 10 : __out(item)) //10
+// stdout:
+// 0
+// 8
+for(A, item -> reg -> item + reg, loop.reg(0)) //29
+for(A, item -> reg -> item * reg, loop.reg(1)) //0
+N = {item: index -> index}
+my_range = b -> e -> {begin: _ -> b, end: _ -> e}
+for(N with my_range(2, 5), __out)
+// stdout:
+// 2
+// 3
+// 4
 ```
 
 ## 运算符
@@ -170,6 +183,20 @@ result = for(0, arr, i -> i)
 | 运算符 | 描述 | 示例 |
 |--------|------|------|
 | `.` | 成员访问 | `obj.property` |
+
+### 对象合并
+
+| 运算符 | 描述 | 示例 |
+|--------|------|------|
+| `with` | 对象合并，右侧属性覆盖左侧同名属性 | `obj1 with obj2` |
+
+`with` 将右侧对象的所有属性合并到左侧对象中，同名属性以右侧为准。
+
+```funi
+base = {x: 1, y: 2}
+extended = base with {z: 3}  # {x: 1, y: 2, z: 3}
+overridden = base with {x: 10}  # {x: 10, y: 2}
+```
 
 ## 类型系统
 
